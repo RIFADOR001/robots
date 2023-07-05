@@ -202,13 +202,13 @@ class enemy(object):
 def drawGameWindow(HB):
     win.blit(bg, (0, 0))
     man.draw(win)
-    goblin.draw(win)
+    #goblin.draw(win)
 
-    coords_text = COORDS_FONT.render("Coords: " + str(coord_x) +","+str(coord_y), 1, (255, 0, 255))
+    #coords_text = COORDS_FONT.render("Coords: " + str(coord_x) +","+str(coord_y), 1, (255, 0, 255))
 
-    win.blit(coords_text, (10, 10))
-    for w in HB:
-        pygame.draw.rect(win,(255,0,0),w)
+    #win.blit(coords_text, (10, 10))
+    #for w in HB:
+    #    pygame.draw.rect(win,(255,0,0),w)
 
     pygame.display.update()
 
@@ -252,15 +252,15 @@ def hit_wall(HB, direction):
 def handleMovement(keys,HB):
     ind_r, ind_c = cell(man.x, man.y)
 
-    if keys[pygame.K_LEFT] and man.x > man.vel:
+    if keys[pygame.K_LEFT] and man.x > man.vel and man.state=="standing":
         man.state = "left"
-    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel:
+    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel and man.state=="standing":
         man.state = "right"
     # elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
-    elif keys[pygame.K_DOWN] and limit(ind_r, ind_c, "down") != (ind_r, ind_c):
+    elif keys[pygame.K_DOWN] and man.state=="standing" and limit(ind_r, ind_c, "down") != (ind_r, ind_c):
         man.state = "down"
     # elif keys[pygame.K_UP] and man.y > man.vel:
-    elif keys[pygame.K_UP] and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
+    elif keys[pygame.K_UP] and man.state=="standing" and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
         man.state = "up"
 
     hit_wall(HB, man.state)
