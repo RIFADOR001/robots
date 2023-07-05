@@ -108,9 +108,6 @@ def walls_hitbox(VW_list, HW_list):
     #Center block
     hb=pygame.Rect(438-CALIBRATION_X,447-CALIBRATION_Y,122+2*CALIBRATION_X,122+2*CALIBRATION_Y)
     HB.append(hb)
-    #Boundary
-    #hb = pygame.Rect(12, 20, 975, 975)
-    #HB.append(hb)
     return HB
 
 #dir is the direction of movement (right, up, left, down) from position i,j (dir is (1,0), (0,1), (-1,0) or (0,-1))
