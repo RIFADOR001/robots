@@ -8,14 +8,22 @@ dimx=1000
 dimy=1000
 win = pygame.display.set_mode((dimx, dimy))
 
-pygame.display.set_caption("First Game")
 
-walkRight = [pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png'),
-             pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png'),
-             pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png')]
-walkLeft = [pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png'),
-             pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png'),
-             pygame.image.load('hero4.png'), pygame.image.load('hero4.png'), pygame.image.load('hero4.png')]
+#FPS=60
+FPS=120
+#FPS=10
+VEL=5
+#With this variable we adjust the hitbox of walls so they are perfectly align
+#and they are also aligh witn the hitbox to be added
+CALIBRATION_X=7
+CALIBRATION_Y=7
+
+
+pygame.display.set_caption("First Game")
+COORDS_FONT=pygame.font.SysFont('comicsans',40)
+
+walkRight = [pygame.image.load('hero4.png')]
+walkLeft = [pygame.image.load('hero4.png')]
 bg = pygame.image.load('board.png')
 char = pygame.image.load('hero4.png')
 
@@ -33,6 +41,26 @@ def coord(i,j):
 HW=np.zeros((17,17))
 #Board matrix [right,up, left, down] limits for every position
 bm=[[[(x,y),(x,y),(x,y),(x,y)]for y in range(16)] for x in range(16)]
+
+#List of vertical walls, starting from top/left corner
+VW_list=[(133,20),(560,20),(316,80),(682,80),
+         (72,203),(926,203),
+         (621,264), (316,325),
+         (255,386),(743,386),(194,508),
+         (316,569),(133,630),(682,630),
+         (804,691),(314,752),(682,752),
+         (804,813),(377,874),(255,935),(621,935)]
+
+'''
+HW_list=[(255,81),(682,81),(926,142),
+         (865,203),(72,264),(316,325),(560,325),(14,386),(194,447),(743,447),
+         (133,508),(316,630),(682,630),(72,691),(255,752),(621,752),(804,752),(926,752),
+         (14,813),(377,874),(743,874)]
+'''
+HW_list=[(255,81),(682,81),(926,142),
+         (865,203),(72,264),(316,325),(560,325),(14,386),(194,447),(743,447),
+         (133,501),(316,623),(682,623),(72,684),(255,745),(621,745),(804,745),(926,745),
+         (14,806),(377,867),(743,867)]
 
 def walls():
     #First we fill the boundary
@@ -67,6 +95,24 @@ def walls():
     HW[14][6] =1
     HW[14][12] =1
 
+#Function to create the list of rectangles that define the hitbox for the walls
+def walls_hitbox(VW_list, HW_list):
+    #List of hitbox
+    HB=[]
+    for vw in VW_list:
+        hb=pygame.Rect(vw[0]-CALIBRATION_X,vw[1]+CALIBRATION_Y,14,40)
+        HB.append(hb)
+    for hw in HW_list:
+        hb=pygame.Rect(hw[0]+CALIBRATION_X,hw[1]-CALIBRATION_Y,40,14)
+        HB.append(hb)
+    #Center block
+    hb=pygame.Rect(438-CALIBRATION_X,447-CALIBRATION_Y,122+2*CALIBRATION_X,122+2*CALIBRATION_Y)
+    HB.append(hb)
+    #Boundary
+    #hb = pygame.Rect(12, 20, 975, 975)
+    #HB.append(hb)
+    return HB
+
 #dir is the direction of movement (right, up, left, down) from position i,j (dir is (1,0), (0,1), (-1,0) or (0,-1))
 def limit(i, j, dir):
     if(dir=="up"):
@@ -97,7 +143,7 @@ class player(object):
         self.y = y
         self.width = 49
         self.height = 48
-        self.vel = 5
+        self.vel = VEL
         #self.vel = 20
         self.state="standing"
         self.isJump = False
@@ -117,13 +163,6 @@ class player(object):
 
         if not (self.standing):
             win.blit(walkLeft[0], (self.x, self.y))
-            #win.blit(walkLeft[self.walkCount // 3], (self.x, self.y))
-            #if self.left:
-            #    win.blit(walkLeft[self.walkCount // 3], (self.x, self.y))
-            #    self.walkCount += 1
-            #elif self.right:
-            #    win.blit(walkRight[self.walkCount // 3], (self.x, self.y))
-            #    self.walkCount += 1
         else:
             if self.right:
                 win.blit(walkRight[0], (self.x, self.y))
@@ -134,17 +173,6 @@ class player(object):
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 
 
-class projectile(object):
-    def __init__(self, x, y, radius, color, facing):
-        self.x = x
-        self.y = y
-        self.radius = radius
-        self.color = color
-        self.facing = facing
-        self.vel = 8 * facing
-
-    def draw(self, win):
-        pygame.draw.circle(win, self.color, (self.x, self.y), self.radius)
 
 
 class enemy(object):
@@ -160,56 +188,68 @@ class enemy(object):
         self.end = end
         self.path = [self.x, self.end]
         self.walkCount = 0
-        self.vel = 3
-        #self.hitbox = (self.x + 17, self.y + 2, 31, 57)
         self.hitbox = (self.x , self.y , 49, 48)
 
     def draw(self, win):
-        self.move()
-        if self.walkCount + 1 >= 33:
-            self.walkCount = 0
 
-        if self.vel > 0:
-            win.blit(self.walkRight[0], (self.x, self.y))
-            self.walkCount += 1
-        else:
-            win.blit(self.walkLeft[0], (self.x, self.y))
-            self.walkCount += 1
         #self.hitbox = (self.x + 17, self.y + 2, 31, 57)
         l=49
         self.hitbox = (self.x , self.y , l, l)
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 
-    def move(self):
-        if self.vel > 0:
-            if self.x + self.vel < self.path[1]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1
-                self.walkCount = 0
-        else:
-            if self.x - self.vel > self.path[0]:
-                self.x += self.vel
-            else:
-                self.vel = self.vel * -1
-                self.walkCount = 0
-
-    def hit(self):
-        print('hit')
 
 
-def redrawGameWindow():
+
+def drawGameWindow(HB):
     win.blit(bg, (0, 0))
     man.draw(win)
     goblin.draw(win)
-    for bullet in bullets:
-        bullet.draw(win)
+
+    coords_text = COORDS_FONT.render("Coords: " + str(coord_x) +","+str(coord_y), 1, (255, 0, 255))
+
+    win.blit(coords_text, (10, 10))
+    for w in HB:
+        pygame.draw.rect(win,(255,0,0),w)
 
     pygame.display.update()
 
 
+def handleMovement(keys):
+    ind_r, ind_c = cell(man.x, man.y)
+
+    if keys[pygame.K_LEFT] and man.x > man.vel:
+        man.state = "left"
+    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel:
+        man.state = "right"
+    # elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
+    elif keys[pygame.K_DOWN] and limit(ind_r, ind_c, "down") != (ind_r, ind_c):
+        man.state = "down"
+    # elif keys[pygame.K_UP] and man.y > man.vel:
+    elif keys[pygame.K_UP] and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
+        man.state = "up"
+
+    if man.state == "left" and man.x > man.vel:
+        man.x -= man.vel
+    elif man.state == "right" and man.x < dimx - man.width - man.vel:
+        man.x += man.vel
+    # elif man.state == "down" and man.y < dimy - man.height - man.vel:
+    elif man.state == "down" and man.y < coord(limit(ind_r, ind_c, "down")[0] + 1, limit(ind_r, ind_c, "down")[1])[
+        1] - man.vel:
+        man.y += man.vel
+    # elif man.state == "up" and man.y > man.vel:
+    # elif man.state == "up" and man.y>man.vel+man.height-coord(limit(ind_r, ind_c, "up")[0],limit(ind_r, ind_c, "up")[1])[1]:
+    elif man.state == "up" and man.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1] + man.vel:
+        man.y -= man.vel
+    else:
+        man.state = "standing"
+        man.standing = True
+        man.walkCount = 0
+
+
+
 walls()
 movementMatrix()
+HB=walls_hitbox(VW_list, HW_list)
 #print(HW)
 #for i in range(5):
 #    print(bm[0][i])
@@ -217,14 +257,14 @@ movementMatrix()
 man = player(200, 23)
 goblin = enemy(100, 448, 450)
 shootLoop = 0
-bullets = []
 run = True
 
 #'''
 while run:
-    clock.tick(27)
-
+    clock.tick(FPS)
+    coord_x, coord_y = pygame.mouse.get_pos()
     for event in pygame.event.get():
+        # Close the game if Q is pressed
         if event.type == pygame.KEYDOWN:
             if event.key == ord('q'):
                 pygame.quit()
@@ -235,222 +275,15 @@ while run:
             sys.exit()
             run = False
 
-    if shootLoop > 0:
-        shootLoop += 1
-    if shootLoop > 3:
-        shootLoop = 0
 
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
 
-    for bullet in bullets:
-        if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[
-            1]:
-            if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + \
-                    goblin.hitbox[2]:
-                goblin.hit()
-                bullets.pop(bullets.index(bullet))
 
-        if bullet.x < 500 and bullet.x > 0:
-            bullet.x += bullet.vel
-        else:
-            bullets.pop(bullets.index(bullet))
 
     keys = pygame.key.get_pressed()
-    ind_r, ind_c=cell(man.x,man.y)
-    print(ind_r,ind_c)
-
-    if keys[pygame.K_DOWN] and limit(ind_r, ind_c, "down") == (ind_r, ind_c):
-        print("here")
-
-    if keys[pygame.K_LEFT] and man.x > man.vel:
-        man.state="left"
-    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel:
-        man.state = "right"
-    #elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
-    elif keys[pygame.K_DOWN] and limit(ind_r,ind_c,"down")!= (ind_r, ind_c):
-        man.state = "down"
-    #elif keys[pygame.K_UP] and man.y > man.vel:
-    elif keys[pygame.K_UP] and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
-        man.state = "up"
-
-
-    if man.state == "left" and man.x > man.vel:
-        man.x -= man.vel
-    elif man.state == "right" and man.x < dimx - man.width - man.vel:
-        man.x += man.vel
-    #elif man.state == "down" and man.y < dimy - man.height - man.vel:
-    elif man.state == "down" and man.y<coord(limit(ind_r, ind_c, "down")[0]+1,limit(ind_r, ind_c, "down")[1])[1]-man.vel:
-        man.y += man.vel
-    #elif man.state == "up" and man.y > man.vel:
-    #elif man.state == "up" and man.y>man.vel+man.height-coord(limit(ind_r, ind_c, "up")[0],limit(ind_r, ind_c, "up")[1])[1]:
-    elif man.state == "up" and man.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1]+man.vel :
-        man.y -= man.vel
-    else:
-        man.state="standing"
-        man.standing = True
-        man.walkCount = 0
-    redrawGameWindow()
+    handleMovement(keys)
+    drawGameWindow(HB)
 
 
 
 pygame.quit()
 #'''
-
-'''
-while run:
-    clock.tick(27)
-
-    for event in pygame.event.get():
-        if event.type == pygame.KEYDOWN:
-            if event.key == ord('q'):
-                pygame.quit()
-                sys.exit()
-                run = False
-        if event.type == pygame.QUIT:
-            pygame.quit();
-            sys.exit()
-            run = False
-
-    if shootLoop > 0:
-        shootLoop += 1
-    if shootLoop > 3:
-        shootLoop = 0
-
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            run = False
-
-    for bullet in bullets:
-        if bullet.y - bullet.radius < goblin.hitbox[1] + goblin.hitbox[3] and bullet.y + bullet.radius > goblin.hitbox[
-            1]:
-            if bullet.x + bullet.radius > goblin.hitbox[0] and bullet.x - bullet.radius < goblin.hitbox[0] + \
-                    goblin.hitbox[2]:
-                goblin.hit()
-                bullets.pop(bullets.index(bullet))
-
-        if bullet.x < 500 and bullet.x > 0:
-            bullet.x += bullet.vel
-        else:
-            bullets.pop(bullets.index(bullet))
-
-    keys = pygame.key.get_pressed()
-
-
-
-    if keys[pygame.K_LEFT] and man.x > man.vel:
-        man.x -= man.vel
-        man.left = True
-        man.right = False
-        man.down = False
-        man.up = False
-        man.standing = False
-    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel:
-        man.x += man.vel
-        man.right = True
-        man.left = False
-        man.down = False
-        man.up = False
-        man.standing = False
-    elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
-        man.y += man.vel
-        man.right = False
-        man.left = False
-        man.down = True
-        man.up = False
-        man.standing = False
-    elif keys[pygame.K_UP] and man.y > man.vel:
-        man.y -= man.vel
-        man.right = False
-        man.left = False
-        man.down = False
-        man.up = True
-        man.standing = False
-    else:
-        man.standing = True
-        man.walkCount = 0
-    redrawGameWindow()
-
-
-
-pygame.quit()
-
-#jun 21 11:41
-
-    if keys[pygame.K_LEFT] and man.x > man.vel:
-        #print("left")
-        #man.left = True
-        #man.right = False
-        #man.down = False
-        #man.up = False
-        #man.standing = False
-        man.state="left"
-    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel:
-        #print("right")
-        #man.right = True
-        #man.left = False
-        #man.down = False
-        #man.up = False
-        #man.standing = False
-        man.state = "right"
-    elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
-        #print("down")
-        #man.right = False
-        #man.left = False
-        #man.down = True
-        #man.up = False
-        #man.standing = False
-        man.state = "down"
-    elif keys[pygame.K_UP] and man.y > man.vel:
-        #print("up")
-        #man.right = False
-        #man.left = False
-        #man.down = False
-        #man.up = True
-        #man.standing = False
-        man.state = "up"
-    #print(man.standing)
-
-
-    #if keys[pygame.K_LEFT] and man.x > man.vel:
-    #if man.left==True and man.x > man.vel:
-    if man.state == "left" and man.x > man.vel:
-        man.x -= man.vel
-        #man.left = True
-        #man.right = False
-        #man.down = False
-        #man.up = False
-        #man.standing = False
-    #elif man.right==True and man.x < dimx - man.width - man.vel:
-    elif man.state == "right" and man.x < dimx - man.width - man.vel:
-        man.x += man.vel
-        #man.right = True
-        #man.left = False
-        #man.down = False
-        #man.up = False
-        #man.standing = False
-    #elif man.down==True and man.y < dimy - man.height - man.vel:
-    elif man.state == "down" and man.y < dimy - man.height - man.vel:
-        man.y += man.vel
-        #man.right = False
-        #man.left = False
-        #man.down = True
-        #man.up = False
-        #man.standing = False
-    #elif man.up==True and man.y > man.vel:
-    elif man.state == "up" and man.y > man.vel:
-        man.y -= man.vel
-        #man.right = False
-        #man.left = False
-        #man.down = False
-        #man.up = True
-        #man.standing = False
-    else:
-        man.state="standing"
-        man.standing = True
-        man.walkCount = 0
-    redrawGameWindow()
-
-
-'''
