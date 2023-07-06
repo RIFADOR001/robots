@@ -23,8 +23,7 @@ CALIBRATION_Y=7-EPSILON
 pygame.display.set_caption("First Game")
 COORDS_FONT=pygame.font.SysFont('comicsans',40)
 
-walkRight = [pygame.image.load('hero4.png')]
-walkLeft = [pygame.image.load('hero4.png')]
+BLACK_PIECE = pygame.image.load('heroblack.png')
 bg = pygame.image.load('board.png')
 char = pygame.image.load('hero4.png')
 
@@ -136,7 +135,7 @@ def movementMatrix():
 
 class player(object):
     #def __init__(self, x, y, width, height):
-    def __init__(self, x, y):
+    def __init__(self, x, y, color):
         self.x = x
         self.y = y
         self.width = 49
@@ -152,21 +151,16 @@ class player(object):
         self.walkCount = 0
         self.jumpCount = 10
         self.standing = True
+        #BLACK_PIECE = pygame.image.load('heroblack.png')
+        self.image=pygame.image.load("hero"+color+".png")
         #self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x + 49, self.y + 48, 49, 48)
         self.rect=pygame.Rect(self.x, self.y,49,89)
 
     def draw(self, win):
-        if self.walkCount + 1 >= 27:
-            self.walkCount = 0
+        #win.blit(BLACK_PIECE, (self.x, self.y))
+        win.blit(self.image, (self.x, self.y))
 
-        if not (self.standing):
-            win.blit(walkLeft[0], (self.x, self.y))
-        else:
-            if self.right:
-                win.blit(walkRight[0], (self.x, self.y))
-            else:
-                win.blit(walkLeft[0], (self.x, self.y))
         #self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x , self.y , 49, 48)
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
@@ -202,11 +196,16 @@ class enemy(object):
 def drawGameWindow(HB):
     win.blit(bg, (0, 0))
     man.draw(win)
+    #red.draw(win)
+    #green.draw(win)
+    #yellow.draw(win)
+    #blue.draw(win)
+
     #goblin.draw(win)
 
-    #coords_text = COORDS_FONT.render("Coords: " + str(coord_x) +","+str(coord_y), 1, (255, 0, 255))
+    coords_text = COORDS_FONT.render("Coords: " + str(coord_x) +","+str(coord_y), 1, (255, 0, 255))
 
-    #win.blit(coords_text, (10, 10))
+    win.blit(coords_text, (10, 10))
     #for w in HB:
     #    pygame.draw.rect(win,(255,0,0),w)
 
@@ -290,8 +289,11 @@ HB=walls_hitbox(VW_list, HW_list)
 #for i in range(5):
 #    print(bm[0][i])
 # mainloop
-man = player(200, 23)
-yellow=player(800,23)
+man = player(200, 23,"black")
+#yellow=player(386,874,"yellow")
+#green=player(865,203,"green")
+#red=player(926,325,"red")
+#blue=player(560,264,"blue")
 goblin = enemy(100, 448, 450)
 shootLoop = 0
 run = True
