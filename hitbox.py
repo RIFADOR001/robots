@@ -291,6 +291,7 @@ HB=walls_hitbox(VW_list, HW_list)
 #    print(bm[0][i])
 # mainloop
 man = player(200, 23)
+yellow=player(800,23)
 goblin = enemy(100, 448, 450)
 shootLoop = 0
 run = True
