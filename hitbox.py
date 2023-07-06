@@ -2,7 +2,7 @@ import pygame
 import sys     # let  python use your file system
 import numpy as np
 
-LEFT_SPACE = 200
+LEFT_SPACE = 300
 pygame.init()
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
@@ -147,7 +147,6 @@ class player(object):
         self.width = 49
         self.height = 48
         self.vel = VEL
-        # self.vel = 20
         self.state = "standing"
         self.isJump = False
         self.left = False
@@ -170,28 +169,58 @@ class player(object):
         pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 
 
+class Button(object):
+    # We specify the location, size and function of the button (character, timer, go back, etc)
+    def __init__(self, x, y, width, height, function, color = ""):
+        self.x = x
+        self.y = y
+        self.width = width
+        self.height = height
+        self.function = function
+        self.color = color
+        if function == "piece":
+            self.pushed = False
+            if color == "red":
+                self.image = pygame.image.load("herored.png")
+                self.piece = red
+            if color == "yellow":
+                self.image = pygame.image.load("heroyellow.png")
+                self.piece = yellow
+            if color == "blue":
+                self.image = pygame.image.load("heroblue.png")
+                self.piece = blue
+            if color == "green":
+                self.image = pygame.image.load("herogreen.png")
+                self.piece = green
+
+    def draw(self, win):
+        win.blit(self.image, (self.x, self.y))
+
+    # The activate function will depend on the pressed button
+    def activate(self):
+        pass
+
+        # self.hitbox = (self.x, self.y, 49, 48)
+
 
 
 def drawGameWindow(HB):
+    win.fill((0, 155, 155))
     win.blit(bg, (0, 0))
-    man.draw(win)
-    # red.draw(win)
-    # green.draw(win)
-    # yellow.draw(win)
-    # blue.draw(win)
+    for piece in pieces_list:
+        piece.draw(win)
+
+    aux=0
+    for button in button_list:
+        button_info = TEXT_FONT.render("Pushed " + button.color + " button? " + str(button.pushed), True, (255, 255, 0))
+        button.draw(win)
+        win.blit(button_info, (1000, 200 + aux*20))
+        aux+=1
+
 
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
     coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
 
-    button_yellow = pygame.image.load('heroyellow.png')
-    button_red = pygame.image.load('herored.png')
-    button_blue = pygame.image.load('heroblue.png')
-    button_green = pygame.image.load('herogreen.png')
-
-    win.blit(button_yellow,(1000,50))
-    win.blit(button_red,(1050,50))
-    win.blit(button_blue,(1000,100))
-    win.blit(button_green,(1050,100))
     win.blit(coords_text, (10, 10))
     win.blit(pieces_text, (1000, 20))
     # for w in HB:
@@ -199,8 +228,18 @@ def drawGameWindow(HB):
 
     pygame.display.update()
 
-
-
+# We verify if a button was pushed. If it is a piece, the other pieces should deactivate and the pushed
+# piece should become active. This is the piece that we will move.
+def handle_clicks(x,y):
+    for button in button_list:
+        if button.x < x and x < button.x + button.width and button.y < y and y < button.y + button.height:
+            if button.function == "piece":
+                for but in button_list:
+                    if but.function == "piece":
+                        but.pushed = False
+                button.pushed = True
+            else:
+                button.activate()
 
 def hit_wall(HB, direction):
     epsilon = 10
@@ -234,7 +273,7 @@ def hit_wall(HB, direction):
                 break
 
 # Handles the movement of the pieces, and verifies the conditions
-def handleMovement(keys, HB):
+def handleMovement(keys, HB, piece):
     ind_r, ind_c = cell(man.x, man.y)
 
     if keys[pygame.K_LEFT] and man.x > man.vel and man.state == "standing":
@@ -270,15 +309,32 @@ def handleMovement(keys, HB):
 walls()
 movementMatrix()
 HB = walls_hitbox(VW_list, HW_list)
-# print(HW)
-# for i in range(5):
-#    print(bm[0][i])
+
+
 # mainloop
+pieces_list = []
 man = player(200, 23, "black")
-# yellow=player(386,874, "yellow")
-# green=player(865,203, "green")
-# red=player(926,325, "red")
-# blue=player(560,264, "blue")
+pieces_list.append(man)
+# '''
+yellow=player(386,874, "yellow")
+pieces_list.append(yellow)
+green=player(865,203, "green")
+pieces_list.append(green)
+red=player(926,325, "red")
+pieces_list.append(red)
+blue=player(560,264, "blue")
+pieces_list.append(blue)
+# '''
+
+button_list = []
+button_yellow = Button(1000, 50, 50, 50, "piece", "yellow")
+button_list.append(button_yellow)
+button_red = Button(1050, 50, 50, 50, "piece", "red")
+button_list.append(button_red)
+button_blue = Button(1000, 100, 50, 50, "piece", "blue")
+button_list.append(button_blue)
+button_green = Button(1050, 100, 50, 50, "piece", "green")
+button_list.append(button_green)
 run = True
 
 # '''
@@ -295,10 +351,13 @@ while run:
         if event.type == pygame.QUIT:
             pygame.quit()
             sys.exit()
+        if event.type == pygame.MOUSEBUTTONDOWN:
+            handle_clicks(coord_x, coord_y)
             # run = False
-
-    keys = pygame.key.get_pressed()
-    handleMovement(keys, HB)
+    for button in button_list:
+        if button.pushed == True:
+            keys = pygame.key.get_pressed()
+            handleMovement(keys, HB, button.piece)
     drawGameWindow(HB)
 
 pygame.quit()
