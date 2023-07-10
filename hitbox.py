@@ -15,8 +15,9 @@ FPS=120
 VEL=5
 #With this variable we adjust the hitbox of walls so they are perfectly align
 #and they are also aligh witn the hitbox to be added
-CALIBRATION_X=7
-CALIBRATION_Y=7
+EPSILON=2
+CALIBRATION_X=7-EPSILON
+CALIBRATION_Y=7-EPSILON
 
 
 pygame.display.set_caption("First Game")
@@ -100,17 +101,14 @@ def walls_hitbox(VW_list, HW_list):
     #List of hitbox
     HB=[]
     for vw in VW_list:
-        hb=pygame.Rect(vw[0]-CALIBRATION_X,vw[1]+CALIBRATION_Y,14,40)
+        hb=pygame.Rect(vw[0]-CALIBRATION_X,vw[1]+CALIBRATION_Y,14-2*EPSILON,40)
         HB.append(hb)
     for hw in HW_list:
-        hb=pygame.Rect(hw[0]+CALIBRATION_X,hw[1]-CALIBRATION_Y,40,14)
+        hb=pygame.Rect(hw[0]+CALIBRATION_X,hw[1]-CALIBRATION_Y,40,14-2*EPSILON)
         HB.append(hb)
     #Center block
     hb=pygame.Rect(438-CALIBRATION_X,447-CALIBRATION_Y,122+2*CALIBRATION_X,122+2*CALIBRATION_Y)
     HB.append(hb)
-    #Boundary
-    #hb = pygame.Rect(12, 20, 975, 975)
-    #HB.append(hb)
     return HB
 
 #dir is the direction of movement (right, up, left, down) from position i,j (dir is (1,0), (0,1), (-1,0) or (0,-1))
@@ -156,6 +154,7 @@ class player(object):
         self.standing = True
         #self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x + 49, self.y + 48, 49, 48)
+        self.rect=pygame.Rect(self.x, self.y,49,89)
 
     def draw(self, win):
         if self.walkCount + 1 >= 27:
@@ -213,8 +212,44 @@ def drawGameWindow(HB):
 
     pygame.display.update()
 
+def hit_wall(HB, direction):
+    epsilon=10
+    if direction=="left":
+        aux=pygame.Rect(man.x-man.vel,man.y,49-epsilon,49-epsilon)
+        for hb in HB:
+            if aux.colliderect(hb):
+                man.state="standing"
+                man.standing = True
+                break
+    if direction=="right":
+        aux=pygame.Rect(man.x+man.vel,man.y,49-epsilon,49-epsilon)
+        for hb in HB:
+            if aux.colliderect(hb):
+                man.state="standing"
+                man.standing = True
+                break
+    if direction=="up":
+        aux=pygame.Rect(man.x,man.y-man.vel,49-epsilon,49-epsilon)
+        for hb in HB:
+            if aux.colliderect(hb):
+                man.state="standing"
+                man.standing = True
+                break
+    if direction=="down":
+        aux=pygame.Rect(man.x,man.y+man.vel,49-epsilon,49-epsilon)
+        for hb in HB:
+            if aux.colliderect(hb):
+                man.state="standing"
+                man.standing = True
+                break
 
-def handleMovement(keys):
+
+
+
+
+
+
+def handleMovement(keys,HB):
     ind_r, ind_c = cell(man.x, man.y)
 
     if keys[pygame.K_LEFT] and man.x > man.vel:
@@ -228,6 +263,7 @@ def handleMovement(keys):
     elif keys[pygame.K_UP] and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
         man.state = "up"
 
+    hit_wall(HB, man.state)
     if man.state == "left" and man.x > man.vel:
         man.x -= man.vel
     elif man.state == "right" and man.x < dimx - man.width - man.vel:
@@ -280,7 +316,7 @@ while run:
 
 
     keys = pygame.key.get_pressed()
-    handleMovement(keys)
+    handleMovement(keys,HB)
     drawGameWindow(HB)
 
 
