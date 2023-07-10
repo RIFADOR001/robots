@@ -1,12 +1,18 @@
 import pygame
 import sys     # let  python use your file system
 import numpy as np
+import os
+
+pygame.font.init()
+pygame.mixer.init()
 
 LEFT_SPACE = 300
 pygame.init()
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
 win = pygame.display.set_mode((dimx, dimy))
+
+HITBOX_SOUND=pygame.mixer.Sound(os.path.join('Assets','hitbox.mp3'))
 
 
 # FPS=60
@@ -19,21 +25,24 @@ EPSILON = 2
 CALIBRATION_X = 7-EPSILON
 CALIBRATION_Y = 7-EPSILON
 
+X_COORD_LIST = [11, 72, 133, 194, 255, 316, 377, 438, 499, 560, 621, 682, 743, 804, 865, 926]
+Y_COORD_LIST = [20, 81, 142, 203, 264, 325, 386, 447, 508, 569, 630, 691, 752, 813, 874, 935]
 
 pygame.display.set_caption("First Game")
 COORDS_FONT = pygame.font.SysFont('comicsans', 40)
 TEXT_FONT = pygame.font.SysFont('comicsans', 20)
 
-
-BLACK_PIECE = pygame.image.load('heroblack.png')
-bg = pygame.image.load('board.png')
-char = pygame.image.load('hero4.png')
+#os.path.join('Assets','spaceship_yellow.png')
+#BLACK_PIECE = pygame.image.load('heroblack.png')
+BLACK_PIECE = pygame.image.load(os.path.join('Assets','heroblack.png'))
+bg = pygame.image.load(os.path.join('Assets','board.png'))
 
 clock = pygame.time.Clock()
 
 
 def cell(x, y):
-    return (int(y/(1000/16)), int(x/(1000/16)))
+    # return (int(y/(1000/16)), int(x/(1000/16)))
+    return int((x-11)/61), int((y-20)/61)
 
 
 def coord(i, j):
@@ -148,14 +157,16 @@ class player(object):
         self.height = 48
         self.vel = VEL
         self.state = "standing"
-        self.isJump = False
         self.left = False
         self.right = False
         self.up = False
         self.down = False
         self.standing = True
-        # BLACK_PIECE = pygame.image.load('heroblack.png')
-        self.image = pygame.image.load("hero"+color+".png")
+        self.cell_x, self.cell_y = cell(x, y)
+        self.old_cell_x = self.cell_x
+        self.old_cell_y = self.cell_y
+
+        self.image = pygame.image.load(os.path.join('Assets',"hero"+color+".png"))
         # self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x + 49, self.y + 48, 49, 48)
         self.rect = pygame.Rect(self.x, self.y, 49, 89)
@@ -181,17 +192,30 @@ class Button(object):
         if function == "piece":
             self.pushed = False
             if color == "red":
-                self.image = pygame.image.load("herored.png")
+                self.image_nonactive = pygame.image.load(os.path.join('Assets','herored.png'))
+                self.image = self.image_nonactive
+                self.image_active = pygame.image.load(os.path.join('Assets',color + '_active.png'))
                 self.piece = red
             if color == "yellow":
-                self.image = pygame.image.load("heroyellow.png")
+                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroyellow.png'))
+                self.image = self.image_nonactive
+                self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = yellow
             if color == "blue":
-                self.image = pygame.image.load("heroblue.png")
+                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroblue.png'))
+                self.image = self.image_nonactive
+                self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = blue
             if color == "green":
-                self.image = pygame.image.load("herogreen.png")
+                self.image_nonactive = pygame.image.load(os.path.join('Assets','herogreen.png'))
+                self.image = self.image_nonactive
+                self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = green
+            if color == "black":
+                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroblack.png'))
+                self.image = self.image_nonactive
+                self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
+                self.piece = black
 
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
@@ -223,8 +247,8 @@ def drawGameWindow(HB):
 
     win.blit(coords_text, (10, 10))
     win.blit(pieces_text, (1000, 20))
-    # for w in HB:
-    #    pygame.draw.rect(win,(255,0,0),w)
+    for w in HB:
+        pygame.draw.rect(win,(255,0,0),w)
 
     pygame.display.update()
 
@@ -237,73 +261,86 @@ def handle_clicks(x,y):
                 for but in button_list:
                     if but.function == "piece":
                         but.pushed = False
+                        but.image = but.image_nonactive
                 button.pushed = True
+                button.image = button.image_active
             else:
                 button.activate()
-
-def hit_wall(HB, direction):
+        elif button.function == "piece":
+            if button.piece.x < x and x < button.piece.x + button.piece.width and button.piece.y < y and y < button.piece.y + button.piece.height:
+                for but in button_list:
+                    if but.function == "piece":
+                        but.pushed = False
+                        but.image = but.image_nonactive
+                button.pushed = True
+                button.image = button.image_active
+def hit_wall(HB, direction, piece):
     epsilon = 10
     if direction == "left":
-        aux = pygame.Rect(man.x-man.vel, man.y, 49-epsilon, 49-epsilon)
+        aux = pygame.Rect(piece.x-piece.vel, piece.y, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
-                man.state = "standing"
-                man.standing = True
+                piece.state = "standing"
+                HITBOX_SOUND.play()
                 break
     if direction == "right":
-        aux = pygame.Rect(man.x+man.vel, man.y, 49-epsilon, 49-epsilon)
+        aux = pygame.Rect(piece.x+piece.vel, piece.y, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
-                man.state = "standing"
-                man.standing = True
+                piece.state = "standing"
+                HITBOX_SOUND.play()
                 break
     if direction == "up":
-        aux = pygame.Rect(man.x, man.y-man.vel, 49-epsilon, 49-epsilon)
+        aux = pygame.Rect(piece.x, piece.y-piece.vel, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
-                man.state = "standing"
-                man.standing = True
+                piece.state = "standing"
+                HITBOX_SOUND.play()
                 break
     if direction == "down":
-        aux = pygame.Rect(man.x, man.y+man.vel, 49-epsilon, 49-epsilon)
+        aux = pygame.Rect(piece.x, piece.y+piece.vel, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
-                man.state = "standing"
-                man.standing = True
+                piece.state = "standing"
+                HITBOX_SOUND.play()
+                # print("hitbox down")
                 break
+
 
 # Handles the movement of the pieces, and verifies the conditions
 def handleMovement(keys, HB, piece):
-    ind_r, ind_c = cell(man.x, man.y)
+    ind_r, ind_c = cell(piece.x, piece.y)
 
-    if keys[pygame.K_LEFT] and man.x > man.vel and man.state == "standing":
-        man.state = "left"
-    elif keys[pygame.K_RIGHT] and man.x < dimx - man.width - man.vel and man.state == "standing":
-        man.state = "right"
-    # elif keys[pygame.K_DOWN] and man.y < dimy - man.height - man.vel:
-    elif keys[pygame.K_DOWN] and man.state == "standing" and limit(ind_r, ind_c, "down") != (ind_r, ind_c):
-        man.state = "down"
-    # elif keys[pygame.K_UP] and man.y > man.vel:
-    elif keys[pygame.K_UP] and man.state == "standing" and limit(ind_r, ind_c, "up") != (ind_r, ind_c):
-        man.state = "up"
+    if keys[pygame.K_LEFT] and piece.state == "standing":
+        piece.state = "left"
+    elif keys[pygame.K_RIGHT] and piece.state == "standing":
+        piece.state = "right"
+    elif keys[pygame.K_DOWN] and piece.state == "standing":
+        piece.state = "down"
+    elif keys[pygame.K_UP] and piece.state == "standing":
+        piece.state = "up"
 
-    hit_wall(HB, man.state)
-    if man.state == "left" and man.x > man.vel:
-        man.x -= man.vel
-    elif man.state == "right" and man.x < dimx - man.width - man.vel - LEFT_SPACE:
-        man.x += man.vel
-    # elif man.state == "down" and man.y < dimy - man.height - man.vel:
-    elif man.state == "down" and man.y < coord(limit(ind_r, ind_c, "down")[0] + 1, limit(ind_r, ind_c, "down")[1])[
-        1] - man.vel:
-        man.y += man.vel
-    # elif man.state == "up" and man.y > man.vel:
-    # elif man.state == "up" and man.y>man.vel+man.height-coord(limit(ind_r, ind_c, "up")[0],limit(ind_r, ind_c, "up")[1])[1]:
-    elif man.state == "up" and man.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1] + man.vel:
-        man.y -= man.vel
+    hit_wall(HB, piece.state, piece)
+    if piece.state == "left" and piece.x > piece.vel:
+        piece.x -= piece.vel
+        # piece.image = pygame.image.load("heroblackleft.png")
+    elif piece.state == "right" and piece.x < dimx - piece.width - piece.vel - LEFT_SPACE:
+        piece.x += piece.vel
+        # piece.image = pygame.image.load("heroblackright.png")
+    # elif piece.state == "down" and piece.y < coord(limit(ind_r, ind_c, "down")[0] + 1, limit(ind_r, ind_c, "down")[1])[
+      #  1] - piece.vel:
+    elif piece.state == "down" and piece.y < dimy - piece.height - piece.vel:
+        piece.y += piece.vel
+        # piece.image = pygame.image.load("heroblackdown.png")
+    # elif piece.state == "up" and piece.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1] + piece.vel:
+    elif piece.state == "up" and piece.y > piece.vel:
+        piece.y -= piece.vel
+        # piece.image = pygame.image.load("heroblackup.png")
     else:
-        man.state = "standing"
-        man.standing = True
-        man.walkCount = 0
+        piece.state = "standing"
+        piece.standing = True
+
+
 
 
 walls()
@@ -313,16 +350,16 @@ HB = walls_hitbox(VW_list, HW_list)
 
 # mainloop
 pieces_list = []
-man = player(200, 23, "black")
-pieces_list.append(man)
+black = player(200, 23, "black")
+pieces_list.append(black)
 # '''
-yellow=player(386,874, "yellow")
+yellow=player(377+CALIBRATION_X,874+CALIBRATION_Y, "yellow")
 pieces_list.append(yellow)
-green=player(865,203, "green")
+green=player(865+CALIBRATION_X,203+CALIBRATION_Y, "green")
 pieces_list.append(green)
-red=player(926,325, "red")
+red=player(926+CALIBRATION_X,325+CALIBRATION_Y, "red")
 pieces_list.append(red)
-blue=player(560,264, "blue")
+blue=player(560+CALIBRATION_X,264+CALIBRATION_Y, "blue")
 pieces_list.append(blue)
 # '''
 
@@ -335,6 +372,8 @@ button_blue = Button(1000, 100, 50, 50, "piece", "blue")
 button_list.append(button_blue)
 button_green = Button(1050, 100, 50, 50, "piece", "green")
 button_list.append(button_green)
+button_black = Button(1000, 150, 50, 50, "piece", "black")
+button_list.append(button_black)
 run = True
 
 # '''
