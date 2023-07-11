@@ -2,6 +2,7 @@ import pygame
 import sys     # let  python use your file system
 import numpy as np
 import os
+import time
 
 pygame.font.init()
 pygame.mixer.init()
@@ -164,6 +165,7 @@ class Penguin(object):
     def __init__(self, x, y, color):
         self.x = x
         self.y = y
+        self.color = color
         self.width = 49
         self.height = 48
         self.vel = VEL
@@ -211,7 +213,26 @@ class Penguin(object):
 
         # self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x, self.y, 49, 48)
-        pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+        #pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+
+
+class Tile(object):
+
+    def __init__(self, x, y, color="rainbow", shape=""):
+        self.x = x
+        self.y = y
+        self.cell_x, self.cell_y = cell(x,y)
+        self.color = color
+        self.active = False
+        if color == "":
+            self.image = pygame.image.load(os.path.join('Assets', "rainbow-tile.png"))
+        else:
+            self.image = pygame.image.load(os.path.join('Assets', shape + "-" + color + "-tile.png"))
+
+    def draw(self,win):
+        win.blit(self.image, (self.x, self.y))
+
+
 
 
 class Button(object):
@@ -261,9 +282,11 @@ class Button(object):
         # self.hitbox = (self.x, self.y, 49, 48)
 
 
-def drawGameWindow(HB):
+def drawGameWindow(HB, tile_list):
     win.fill((0, 155, 155))
     win.blit(bg, (0, 0))
+    for t in tile_list:
+        t.draw(win)
     for piece in pieces_list:
         piece.draw(win)
 
@@ -280,8 +303,10 @@ def drawGameWindow(HB):
 
     win.blit(coords_text, (10, 10))
     win.blit(pieces_text, (1000, 20))
+
     for w in HB:
         pygame.draw.rect(win,(255,0,0),w)
+
 
     pygame.display.update()
 
@@ -346,7 +371,7 @@ def hit_wall(HB, direction, piece):
 
 
 # Handles the movement of the pieces, and verifies the conditions
-def handleMovement(keys, HB, piece):
+def handleMovement(keys, HB, piece, tile_list):
     ind_r, ind_c = cell(piece.x, piece.y)
 
     if keys[pygame.K_LEFT] and piece.state == "standing":
@@ -389,12 +414,55 @@ def update_HB(HB, piece_list, piece):
     piece.hitbox_inactive = True
     return HB
 
+def create_tile_list():
+    tile_list = []
+    mr = Tile(695, 93, "red", "moon")
+    mb = Tile(86, 635, "blue", "moon")
+    my = Tile(753, 817, "yellow", "moon")
+    mg = Tile(268, 93, "green", "moon")
+    tile_list.append(mr)
+    tile_list.append(mb)
+    tile_list.append(my)
+    tile_list.append(mg)
+
+    sr = Tile(271, 759, "red", "star")
+    sb = Tile(208, 394, "blue", "star")
+    sy = Tile(753, 398, "yellow", "star")
+    sg = Tile(694, 636, "green", "star")
+    tile_list.append(sr)
+    tile_list.append(sb)
+    tile_list.append(sy)
+    tile_list.append(sg)
+
+    pr = Tile(819, 698, "red", "planet")
+    pb = Tile(566, 268, "blue", "planet")
+    py = Tile(329, 333, "yellow", "planet")
+    pg = Tile(329, 572, "green", "planet")
+    tile_list.append(pr)
+    tile_list.append(pb)
+    tile_list.append(py)
+    tile_list.append(pg)
+
+    tr = Tile(86, 212, "red", "triangle")
+    tb = Tile(631, 760, "blue", "triangle")
+    ty = Tile(393, 882, "yellow", "triangle")
+    tg = Tile(870, 215, "green", "triangle")
+    tile_list.append(tr)
+    tile_list.append(tb)
+    tile_list.append(ty)
+    tile_list.append(tg)
+
+    rb = Tile(145, 517)
+    tile_list.append(rb)
+
+    return tile_list
 
 
 walls()
 movementMatrix()
 HB = walls_hitbox(VW_list, HW_list)
-
+tile_list = create_tile_list()
+tile_pool = tile_list
 
 # mainloop
 pieces_list = []
@@ -447,8 +515,8 @@ while run:
         if button.pushed == True:
             keys = pygame.key.get_pressed()
             HB = update_HB(HB,pieces_list, button.piece)
-            handleMovement(keys, HB, button.piece)
-    drawGameWindow(HB)
+            handleMovement(keys, HB, button.piece, tile_list)
+    drawGameWindow(HB, tile_list)
 
 pygame.quit()
 # '''
