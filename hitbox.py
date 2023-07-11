@@ -12,7 +12,7 @@ dimx = 1000 + LEFT_SPACE
 dimy = 1000
 win = pygame.display.set_mode((dimx, dimy))
 
-HITBOX_SOUND=pygame.mixer.Sound(os.path.join('Assets','hitbox.mp3'))
+HITBOX_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'hitbox.mp3'))
 
 
 # FPS=60
@@ -25,17 +25,15 @@ EPSILON = 2
 CALIBRATION_X = 7-EPSILON
 CALIBRATION_Y = 7-EPSILON
 
-X_COORD_LIST = [11, 72, 133, 194, 255, 316, 377, 438, 499, 560, 621, 682, 743, 804, 865, 926]
-Y_COORD_LIST = [20, 81, 142, 203, 264, 325, 386, 447, 508, 569, 630, 691, 752, 813, 874, 935]
+X_COORD_LIST = [11, 72, 133, 194, 255, 316, 377, 438, 499, 560, 621, 682, 743, 804, 865, 926, 987]
+Y_COORD_LIST = [20, 81, 142, 203, 264, 325, 386, 447, 508, 569, 630, 691, 752, 813, 874, 935, 996]
 
 pygame.display.set_caption("First Game")
 COORDS_FONT = pygame.font.SysFont('comicsans', 40)
 TEXT_FONT = pygame.font.SysFont('comicsans', 20)
 
-#os.path.join('Assets','spaceship_yellow.png')
-#BLACK_PIECE = pygame.image.load('heroblack.png')
-BLACK_PIECE = pygame.image.load(os.path.join('Assets','heroblack.png'))
-bg = pygame.image.load(os.path.join('Assets','board.png'))
+BLACK_PIECE = pygame.image.load(os.path.join('Assets', 'heroblack.png'))
+bg = pygame.image.load(os.path.join('Assets', 'board.png'))
 
 clock = pygame.time.Clock()
 
@@ -56,12 +54,13 @@ HW = np.zeros((17, 17))
 bm = [[[(x, y), (x, y), (x, y), (x, y)]for y in range(16)] for x in range(16)]
 
 # List of vertical walls, starting from top/left corner
-VW_list = [(133, 20), (560, 20), (316, 80), (682, 80),
+VW_list = [(133, 20), (560, 20), (316, 81), (682, 81),
          (72, 203), (926, 203),
          (621, 264), (316, 325),
          (255, 386), (743, 386), (194, 508),
          (316, 569), (133, 630), (682, 630),
-         (804, 691), (314, 752), (682, 752),
+         (804, 691), (316, 752),
+         (682, 752),
          (804, 813), (377, 874), (255, 935), (621, 935)]
 
 '''
@@ -72,8 +71,10 @@ HW_list=[(255,81),(682,81),(926,142),
 '''
 HW_list = [(255, 81), (682, 81), (926, 142),
          (865, 203), (72, 264), (316, 325), (560, 325), (14, 386), (194, 447), (743, 447),
-         (133, 501), (316, 623), (682, 623), (72, 684), (255, 745), (621, 745), (804, 745), (926, 745),
-         (14, 806), (377, 867), (743, 867)]
+         (133, 508), (316, 630), (682, 630), (72, 691), (255, 752), (621, 752), (804, 752), (926, 752),
+         (14, 813), (377, 874), (743, 874)]
+# (133, 501), (316, 623), (682, 623), (72, 684), (255, 745), (621, 745), (804, 745), (926, 745),
+#         (14, 806), (377, 867), (743, 867)]
 
 
 def walls():
@@ -123,6 +124,16 @@ def walls_hitbox(VW_list, HW_list):
     # Center block
     hb = pygame.Rect(438-CALIBRATION_X, 447-CALIBRATION_Y, 122+2*CALIBRATION_X, 122+2*CALIBRATION_Y)
     HB.append(hb)
+    # Board boundaries
+
+    lw = pygame.Rect(5-CALIBRATION_X, 0-CALIBRATION_Y, 0+2*CALIBRATION_X, 1000+2*CALIBRATION_Y)
+    HB.append(lw)
+    uw = pygame.Rect(0-CALIBRATION_X, 10-CALIBRATION_Y, 1000+2*CALIBRATION_X, 0+2*CALIBRATION_Y)
+    HB.append(uw)
+    rw = pygame.Rect(1000 - 10 - CALIBRATION_X, 0 - CALIBRATION_Y, 0 + 2 * CALIBRATION_X, 1000 + 2 * CALIBRATION_Y)
+    HB.append(rw)
+    dw = pygame.Rect(0 - CALIBRATION_X, 1000 - 10 - CALIBRATION_Y, 1000 + 2 * CALIBRATION_X, 0 + 2 * CALIBRATION_Y)
+    HB.append(dw)
     return HB
 
 
@@ -148,7 +159,7 @@ def movementMatrix():
             # print(bm[i][j][3])
 
 
-class player(object):
+class Penguin(object):
     # def __init__(self, x, y, width, height):
     def __init__(self, x, y, color):
         self.x = x
@@ -157,19 +168,42 @@ class player(object):
         self.height = 48
         self.vel = VEL
         self.state = "standing"
-        self.left = False
-        self.right = False
-        self.up = False
-        self.down = False
-        self.standing = True
-        self.cell_x, self.cell_y = cell(x, y)
+        self.cell_x, self.cell_y = cell(self.x, self.y)
         self.old_cell_x = self.cell_x
         self.old_cell_y = self.cell_y
-
-        self.image = pygame.image.load(os.path.join('Assets',"hero"+color+".png"))
+        self.hitbox_list = []
+        self.hitbox_inactive = True
+        self.image = pygame.image.load(os.path.join('Assets', "hero"+color+".png"))
         # self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x + 49, self.y + 48, 49, 48)
         self.rect = pygame.Rect(self.x, self.y, 49, 89)
+
+
+    def handle_hitbox(self):
+
+        self.old_cell_x = self.cell_x
+        self.old_cell_y = self.cell_y
+        self.cell_x, self.cell_y = cell(self.x, self.y)
+
+        hitbox_left_x = X_COORD_LIST[self.cell_x] - CALIBRATION_X
+        hitbox_left_y = Y_COORD_LIST[self.cell_y] + CALIBRATION_Y
+        hitbox_left = pygame.Rect(hitbox_left_x, hitbox_left_y, 14 - 2 * EPSILON, 40)
+        hitbox_up_x = X_COORD_LIST[self.cell_x] + CALIBRATION_X
+        hitbox_up_y = Y_COORD_LIST[self.cell_y] - CALIBRATION_Y
+        hitbox_up = pygame.Rect(hitbox_up_x, hitbox_up_y, 40, 14 - 2 * EPSILON)
+        hitbox_right_x = X_COORD_LIST[self.cell_x+1] - CALIBRATION_X
+        hitbox_right_y = Y_COORD_LIST[self.cell_y] + CALIBRATION_Y
+        hitbox_right = pygame.Rect(hitbox_right_x, hitbox_right_y, 14 - 2 * EPSILON, 40)
+        hitbox_down_x = X_COORD_LIST[self.cell_x] + CALIBRATION_X
+        hitbox_down_y = Y_COORD_LIST[self.cell_y+1] - CALIBRATION_Y
+        hitbox_down = pygame.Rect(hitbox_down_x, hitbox_down_y, 40, 14 - 2 * EPSILON)
+        # self.hitbox_up = pygame.Rect()
+        self.hitbox_list = []
+        self.hitbox_list.append(hitbox_left)
+        self.hitbox_list.append(hitbox_up)
+        self.hitbox_list.append(hitbox_right)
+        self.hitbox_list.append(hitbox_down)
+
 
     def draw(self, win):
         # win.blit(BLACK_PIECE, (self.x, self.y))
@@ -182,7 +216,7 @@ class player(object):
 
 class Button(object):
     # We specify the location, size and function of the button (character, timer, go back, etc)
-    def __init__(self, x, y, width, height, function, color = ""):
+    def __init__(self, x, y, width, height, function, color=""):
         self.x = x
         self.y = y
         self.width = width
@@ -192,27 +226,27 @@ class Button(object):
         if function == "piece":
             self.pushed = False
             if color == "red":
-                self.image_nonactive = pygame.image.load(os.path.join('Assets','herored.png'))
+                self.image_nonactive = pygame.image.load(os.path.join('Assets', 'herored.png'))
                 self.image = self.image_nonactive
-                self.image_active = pygame.image.load(os.path.join('Assets',color + '_active.png'))
+                self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = red
             if color == "yellow":
-                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroyellow.png'))
+                self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroyellow.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = yellow
             if color == "blue":
-                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroblue.png'))
+                self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroblue.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = blue
             if color == "green":
-                self.image_nonactive = pygame.image.load(os.path.join('Assets','herogreen.png'))
+                self.image_nonactive = pygame.image.load(os.path.join('Assets', 'herogreen.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = green
             if color == "black":
-                self.image_nonactive = pygame.image.load(os.path.join('Assets','heroblack.png'))
+                self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroblack.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 self.piece = black
@@ -225,7 +259,6 @@ class Button(object):
         pass
 
         # self.hitbox = (self.x, self.y, 49, 48)
-
 
 
 def drawGameWindow(HB):
@@ -274,6 +307,8 @@ def handle_clicks(x,y):
                         but.image = but.image_nonactive
                 button.pushed = True
                 button.image = button.image_active
+
+
 def hit_wall(HB, direction, piece):
     epsilon = 10
     if direction == "left":
@@ -281,30 +316,33 @@ def hit_wall(HB, direction, piece):
         for hb in HB:
             if aux.colliderect(hb):
                 piece.state = "standing"
-                HITBOX_SOUND.play()
+                piece.handle_hitbox()
                 break
     if direction == "right":
         aux = pygame.Rect(piece.x+piece.vel, piece.y, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
                 piece.state = "standing"
-                HITBOX_SOUND.play()
+                piece.handle_hitbox()
                 break
     if direction == "up":
         aux = pygame.Rect(piece.x, piece.y-piece.vel, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
                 piece.state = "standing"
-                HITBOX_SOUND.play()
+                piece.handle_hitbox()
+                #for b in piece.hitbox_list:
+                #    HB.append(b)
+                # HITBOX_SOUND.play()
                 break
     if direction == "down":
         aux = pygame.Rect(piece.x, piece.y+piece.vel, 49-epsilon, 49-epsilon)
         for hb in HB:
             if aux.colliderect(hb):
                 piece.state = "standing"
-                HITBOX_SOUND.play()
-                # print("hitbox down")
+                piece.handle_hitbox()
                 break
+    return HB
 
 
 # Handles the movement of the pieces, and verifies the conditions
@@ -320,7 +358,7 @@ def handleMovement(keys, HB, piece):
     elif keys[pygame.K_UP] and piece.state == "standing":
         piece.state = "up"
 
-    hit_wall(HB, piece.state, piece)
+    HB = hit_wall(HB, piece.state, piece)
     if piece.state == "left" and piece.x > piece.vel:
         piece.x -= piece.vel
         # piece.image = pygame.image.load("heroblackleft.png")
@@ -340,6 +378,16 @@ def handleMovement(keys, HB, piece):
         piece.state = "standing"
         piece.standing = True
 
+def update_HB(HB, piece_list, piece):
+    for p in piece_list:
+        if p.hitbox_inactive:
+            for hb in p.hitbox_list:
+                HB.append(hb)
+            p.hitbox_inactive = False
+    for hb in piece.hitbox_list:
+        HB.remove(hb)
+    piece.hitbox_inactive = True
+    return HB
 
 
 
@@ -350,17 +398,19 @@ HB = walls_hitbox(VW_list, HW_list)
 
 # mainloop
 pieces_list = []
-black = player(200, 23, "black")
+black = Penguin(200, 23, "black")
 pieces_list.append(black)
 # '''
-yellow=player(377+CALIBRATION_X,874+CALIBRATION_Y, "yellow")
+yellow=Penguin(377+CALIBRATION_X,874+CALIBRATION_Y, "yellow")
 pieces_list.append(yellow)
-green=player(865+CALIBRATION_X,203+CALIBRATION_Y, "green")
+green=Penguin(865+CALIBRATION_X,203+CALIBRATION_Y, "green")
 pieces_list.append(green)
-red=player(926+CALIBRATION_X,325+CALIBRATION_Y, "red")
+red=Penguin(926+CALIBRATION_X,325+CALIBRATION_Y, "red")
 pieces_list.append(red)
-blue=player(560+CALIBRATION_X,264+CALIBRATION_Y, "blue")
+blue=Penguin(560+CALIBRATION_X,264+CALIBRATION_Y, "blue")
 pieces_list.append(blue)
+for p in pieces_list:
+    p.handle_hitbox()
 # '''
 
 button_list = []
@@ -396,6 +446,7 @@ while run:
     for button in button_list:
         if button.pushed == True:
             keys = pygame.key.get_pressed()
+            HB = update_HB(HB,pieces_list, button.piece)
             handleMovement(keys, HB, button.piece)
     drawGameWindow(HB)
 
