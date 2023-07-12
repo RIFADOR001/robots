@@ -245,9 +245,9 @@ class Button(object):
         self.width = width
         self.height = height
         self.function = function
-
+        self.pushed = False
         if function == "piece":
-            self.pushed = False
+
             self.color = color
             self.piece = Penguin(0, 0, "blue")
             if color == "red":
@@ -275,18 +275,21 @@ class Button(object):
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 #self.piece = black
+        if function == "restart":
+            self.image = pygame.image.load(os.path.join('Assets', 'restart.png'))
 
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
 
     # The activate function will depend on the pressed button
     def activate(self):
-        pass
+        if self.function == "restart":
+            main()
 
         # self.hitbox = (self.x, self.y, 49, 48)
 
 
-def drawGameWindow(HB, tile_list):
+def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y):
     win.fill((0, 155, 155))
     win.blit(bg, (0, 0))
     for t in tile_list:
@@ -295,13 +298,15 @@ def drawGameWindow(HB, tile_list):
         piece.draw(win)
     steps = 0
     steps_info = TEXT_FONT.render("Number of steps: " + str(steps), True, (255, 255, 0))
-    win.blit(steps_info, (1000, 200))
-    aux = 1
+    win.blit(steps_info, (1000, 220))
+    aux = 2
     for button in button_list:
-        button_info = TEXT_FONT.render("Pushed " + button.color + " button? " + str(button.pushed), True, (255, 255, 0))
+        if button.function == "piece":
+            button_info = TEXT_FONT.render("Pushed " + button.color + " button? " + str(button.pushed), True, (255, 255, 0))
+
+            win.blit(button_info, (1000, 200 + aux*20))
+            aux += 1
         button.draw(win)
-        win.blit(button_info, (1000, 200 + aux*20))
-        aux += 1
 
 
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
@@ -318,7 +323,7 @@ def drawGameWindow(HB, tile_list):
 
 # We verify if a button was pushed. If it is a piece, the other pieces should deactivate and the pushed
 # piece should become active. This is the piece that we will move.
-def handle_clicks(x,y):
+def handle_clicks(x,y, button_list):
     for button in button_list:
         if button.x < x and x < button.x + button.width and button.y < y and y < button.y + button.height:
             if button.function == "piece":
@@ -497,45 +502,51 @@ def initialize_pieces_buttons():
     button_black.piece = black
     button_list.append(button_black)
 
+    button_restart = Button(1000, 200, 50, 20, "restart")
+    button_list.append(button_restart)
+
     return pieces_list, button_list
 
 
+def main():
 
+    walls()
+    movementMatrix()
+    HB = walls_hitbox(VW_list, HW_list)
+    tile_list = create_tile_list()
+    tile_pool = tile_list
 
-walls()
-movementMatrix()
-HB = walls_hitbox(VW_list, HW_list)
-tile_list = create_tile_list()
-tile_pool = tile_list
+    pieces_list, button_list = initialize_pieces_buttons()
+    # mainloop
 
-pieces_list, button_list = initialize_pieces_buttons()
-# mainloop
+    run = True
 
-run = True
-
-# '''
-while run:
-    clock.tick(FPS)
-    coord_x, coord_y = pygame.mouse.get_pos()
-    for event in pygame.event.get():
-        # Close the game if Q is pressed
-        if event.type == pygame.KEYDOWN:
-            if event.key == ord('q'):
+    # '''
+    while run:
+        clock.tick(FPS)
+        coord_x, coord_y = pygame.mouse.get_pos()
+        for event in pygame.event.get():
+            # Close the game if Q is pressed
+            if event.type == pygame.KEYDOWN:
+                if event.key == ord('q'):
+                    pygame.quit()
+                    sys.exit()
+                    # run = False
+            if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
+            if event.type == pygame.MOUSEBUTTONDOWN:
+                handle_clicks(coord_x, coord_y, button_list)
                 # run = False
-        if event.type == pygame.QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            handle_clicks(coord_x, coord_y)
-            # run = False
-    for button in button_list:
-        if button.pushed == True:
-            keys = pygame.key.get_pressed()
-            HB = update_HB(HB,pieces_list, button.piece)
-            handleMovement(keys, HB, button.piece, tile_list)
-    drawGameWindow(HB, tile_list)
+        for button in button_list:
+            if button.pushed == True:
+                keys = pygame.key.get_pressed()
+                HB = update_HB(HB,pieces_list, button.piece)
+                handleMovement(keys, HB, button.piece, tile_list)
+        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y)
 
-pygame.quit()
-# '''
+    pygame.quit()
+    # '''
+
+if __name__ == "__main__":
+    main()
