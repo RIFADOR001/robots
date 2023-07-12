@@ -3,6 +3,7 @@ import sys     # let  python use your file system
 import numpy as np
 import os
 import time
+import random
 
 pygame.font.init()
 pygame.mixer.init()
@@ -181,6 +182,7 @@ class Penguin(object):
         self.rect = pygame.Rect(self.x, self.y, 49, 89)
 
 
+
     def handle_hitbox(self):
 
         self.old_cell_x = self.cell_x
@@ -224,7 +226,7 @@ class Tile(object):
         self.cell_x, self.cell_y = cell(x,y)
         self.color = color
         self.active = False
-        if color == "":
+        if color == "rainbow":
             self.image = pygame.image.load(os.path.join('Assets', "rainbow-tile.png"))
         else:
             self.image = pygame.image.load(os.path.join('Assets', shape + "-" + color + "-tile.png"))
@@ -243,34 +245,36 @@ class Button(object):
         self.width = width
         self.height = height
         self.function = function
-        self.color = color
+
         if function == "piece":
             self.pushed = False
+            self.color = color
+            self.piece = Penguin(0, 0, "blue")
             if color == "red":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'herored.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
-                self.piece = red
+                #self.piece = red
             if color == "yellow":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroyellow.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
-                self.piece = yellow
+                #self.piece = yellow
             if color == "blue":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroblue.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
-                self.piece = blue
+                #self.piece = blue
             if color == "green":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'herogreen.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
-                self.piece = green
+                #self.piece = green
             if color == "black":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'heroblack.png'))
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
-                self.piece = black
+                #self.piece = black
 
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
@@ -289,13 +293,15 @@ def drawGameWindow(HB, tile_list):
         t.draw(win)
     for piece in pieces_list:
         piece.draw(win)
-
-    aux=0
+    steps = 0
+    steps_info = TEXT_FONT.render("Number of steps: " + str(steps), True, (255, 255, 0))
+    win.blit(steps_info, (1000, 200))
+    aux = 1
     for button in button_list:
         button_info = TEXT_FONT.render("Pushed " + button.color + " button? " + str(button.pushed), True, (255, 255, 0))
         button.draw(win)
         win.blit(button_info, (1000, 200 + aux*20))
-        aux+=1
+        aux += 1
 
 
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
@@ -457,6 +463,44 @@ def create_tile_list():
 
     return tile_list
 
+def initialize_pieces_buttons():
+    pieces_list = []
+    black = Penguin(200, 23, "black")
+    pieces_list.append(black)
+    # '''
+    yellow = Penguin(377 + CALIBRATION_X, 874 + CALIBRATION_Y, "yellow")
+    pieces_list.append(yellow)
+    green = Penguin(865 + CALIBRATION_X, 203 + CALIBRATION_Y, "green")
+    pieces_list.append(green)
+    red = Penguin(926 + CALIBRATION_X, 325 + CALIBRATION_Y, "red")
+    pieces_list.append(red)
+    blue = Penguin(560 + CALIBRATION_X, 264 + CALIBRATION_Y, "blue")
+    pieces_list.append(blue)
+    for p in pieces_list:
+        p.handle_hitbox()
+    # '''
+
+    button_list = []
+    button_yellow = Button(1000, 50, 50, 50, "piece", "yellow")
+    button_yellow.piece = yellow
+    button_list.append(button_yellow)
+    button_red = Button(1050, 50, 50, 50, "piece", "red")
+    button_red.piece = red
+    button_list.append(button_red)
+    button_blue = Button(1000, 100, 50, 50, "piece", "blue")
+    button_blue.piece = blue
+    button_list.append(button_blue)
+    button_green = Button(1050, 100, 50, 50, "piece", "green")
+    button_green.piece = green
+    button_list.append(button_green)
+    button_black = Button(1000, 150, 50, 50, "piece", "black")
+    button_black.piece = black
+    button_list.append(button_black)
+
+    return pieces_list, button_list
+
+
+
 
 walls()
 movementMatrix()
@@ -464,34 +508,9 @@ HB = walls_hitbox(VW_list, HW_list)
 tile_list = create_tile_list()
 tile_pool = tile_list
 
+pieces_list, button_list = initialize_pieces_buttons()
 # mainloop
-pieces_list = []
-black = Penguin(200, 23, "black")
-pieces_list.append(black)
-# '''
-yellow=Penguin(377+CALIBRATION_X,874+CALIBRATION_Y, "yellow")
-pieces_list.append(yellow)
-green=Penguin(865+CALIBRATION_X,203+CALIBRATION_Y, "green")
-pieces_list.append(green)
-red=Penguin(926+CALIBRATION_X,325+CALIBRATION_Y, "red")
-pieces_list.append(red)
-blue=Penguin(560+CALIBRATION_X,264+CALIBRATION_Y, "blue")
-pieces_list.append(blue)
-for p in pieces_list:
-    p.handle_hitbox()
-# '''
 
-button_list = []
-button_yellow = Button(1000, 50, 50, 50, "piece", "yellow")
-button_list.append(button_yellow)
-button_red = Button(1050, 50, 50, 50, "piece", "red")
-button_list.append(button_red)
-button_blue = Button(1000, 100, 50, 50, "piece", "blue")
-button_list.append(button_blue)
-button_green = Button(1050, 100, 50, 50, "piece", "green")
-button_list.append(button_green)
-button_black = Button(1000, 150, 50, 50, "piece", "black")
-button_list.append(button_black)
 run = True
 
 # '''
