@@ -3,19 +3,24 @@ import sys     # let  python use your file system
 import numpy as np
 import os
 import time
-import random
+from random import randrange
 
 pygame.font.init()
 pygame.mixer.init()
 
 LEFT_SPACE = 300
+BLUE = (0, 155, 155)
 pygame.init()
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
 win = pygame.display.set_mode((dimx, dimy))
+GAME_OVER = False
+SCORE = 0
 
 HITBOX_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'hitbox.mp3'))
+WINNER_FONT=pygame.font.SysFont('comicsans',100)
 
+GOAL_REACHED = pygame.USEREVENT+1
 
 # FPS=60
 FPS = 120
@@ -234,6 +239,14 @@ class Tile(object):
     def draw(self,win):
         win.blit(self.image, (self.x, self.y))
 
+    def copy(self, tile):
+        self.x = tile.x
+        self.y = tile.y
+        self.cell_x = tile.cell_x
+        self.cell_y = tile.cell_y
+        self.color = tile.color
+        self.image = tile.image
+
 
 
 
@@ -289,13 +302,16 @@ class Button(object):
         # self.hitbox = (self.x, self.y, 49, 48)
 
 
-def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y):
-    win.fill((0, 155, 155))
+def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective):
+    win.fill(BLUE)
     win.blit(bg, (0, 0))
+    for w in HB:
+        pygame.draw.rect(win,(255,0,0),w)
     for t in tile_list:
         t.draw(win)
     for piece in pieces_list:
         piece.draw(win)
+    objective.draw(win)
     steps = 0
     steps_info = TEXT_FONT.render("Number of steps: " + str(steps), True, (255, 255, 0))
     win.blit(steps_info, (1000, 220))
@@ -308,6 +324,8 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y):
             aux += 1
         button.draw(win)
 
+    score_info =  TEXT_FONT.render("Score: " + str(SCORE), True, (255, 255, 0))
+    win.blit(score_info, (1000, 200 + aux * 20))
 
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
     coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
@@ -315,8 +333,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y):
     win.blit(coords_text, (10, 10))
     win.blit(pieces_text, (1000, 20))
 
-    for w in HB:
-        pygame.draw.rect(win,(255,0,0),w)
+
 
 
     pygame.display.update()
@@ -382,9 +399,9 @@ def hit_wall(HB, direction, piece):
 
 
 # Handles the movement of the pieces, and verifies the conditions
-def handleMovement(keys, HB, piece, tile_list):
+def handleMovement(keys, HB, piece, tile_list, objective):
     ind_r, ind_c = cell(piece.x, piece.y)
-
+    global SCORE
     if keys[pygame.K_LEFT] and piece.state == "standing":
         piece.state = "left"
     elif keys[pygame.K_RIGHT] and piece.state == "standing":
@@ -397,20 +414,49 @@ def handleMovement(keys, HB, piece, tile_list):
     HB = hit_wall(HB, piece.state, piece)
     if piece.state == "left" and piece.x > piece.vel:
         piece.x -= piece.vel
+        piece.handle_hitbox()
+        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
+        #    if objective.color == piece.color or objective.color == "rainbow":
+        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
+        #        SCORE += 1
+                #HITBOX_SOUND.play()
         # piece.image = pygame.image.load("heroblackleft.png")
     elif piece.state == "right" and piece.x < dimx - piece.width - piece.vel - LEFT_SPACE:
         piece.x += piece.vel
+        piece.handle_hitbox()
+        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
+        #    if objective.color == piece.color or objective.color == "rainbow":
+        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
+        #        SCORE += 1
+                #HITBOX_SOUND.play()
         # piece.image = pygame.image.load("heroblackright.png")
     # elif piece.state == "down" and piece.y < coord(limit(ind_r, ind_c, "down")[0] + 1, limit(ind_r, ind_c, "down")[1])[
       #  1] - piece.vel:
     elif piece.state == "down" and piece.y < dimy - piece.height - piece.vel:
         piece.y += piece.vel
+        piece.handle_hitbox()
+        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
+        #    if objective.color == piece.color or objective.color == "rainbow":
+        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
+        #        SCORE += 1
+                #HITBOX_SOUND.play()
         # piece.image = pygame.image.load("heroblackdown.png")
     # elif piece.state == "up" and piece.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1] + piece.vel:
     elif piece.state == "up" and piece.y > piece.vel:
         piece.y -= piece.vel
+        piece.handle_hitbox()
+        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
+            #if objective.color == piece.color or objective.color == "rainbow":
+            #    pygame.event.post(pygame.event.Event(GOAL_REACHED))
+            #    SCORE += 1
+                #HITBOX_SOUND.play()
         # piece.image = pygame.image.load("heroblackup.png")
     else:
+        if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
+            if objective.color == piece.color or objective.color == "rainbow":
+                pygame.event.post(pygame.event.Event(GOAL_REACHED))
+                SCORE += 1
+                objective.cell_x = 20
         piece.state = "standing"
         piece.standing = True
 
@@ -508,14 +554,30 @@ def initialize_pieces_buttons():
     return pieces_list, button_list
 
 
-def main():
+def draw_winer(text="GAME OVER"):
+    draw_text=WINNER_FONT.render(text,1,(255,255,0))
+    win.blit(draw_text,(1000//2-draw_text.get_width()//2, 1000//2-draw_text.get_height()//2))
+    pygame.display.update()
+    # The delay is computed as 1000* seconds
+    pygame.time.delay(10000)
 
+def main():
+    global SCORE
+    global GOAL_REACHED
     walls()
     movementMatrix()
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
-    tile_pool = tile_list
+    index_list = [i for i in range(len(tile_list))]
+    random_list = [randrange(1000) for i in range(len(tile_list))]
+    print(len(index_list))
+    print(index_list)
 
+    first_tile_index = randrange(1000) % len(index_list)
+    objective_index = index_list.pop(first_tile_index)
+    objective = tile_list[objective_index]
+    objective.x = 499 - 20
+    objective.y = 508 - 20
     pieces_list, button_list = initialize_pieces_buttons()
     # mainloop
 
@@ -542,8 +604,23 @@ def main():
             if button.pushed == True:
                 keys = pygame.key.get_pressed()
                 HB = update_HB(HB,pieces_list, button.piece)
-                handleMovement(keys, HB, button.piece, tile_list)
-        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y)
+                handleMovement(keys, HB, button.piece, tile_list, objective)
+        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective)
+        if event.type == GOAL_REACHED:
+            # SCORE += 1
+            HITBOX_SOUND.play()
+            print(len(index_list))
+            if len(index_list) != 0:
+                tile_index = randrange(1000) % len(index_list)
+                objective_index = index_list.pop(tile_index)
+                objective = tile_list[objective_index]
+                objective.x = 499 - 20
+                objective.y = 508 - 20
+            else:
+                GAME_OVER = True
+                draw_winer()
+                #main()
+
 
     pygame.quit()
     # '''
