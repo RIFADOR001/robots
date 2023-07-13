@@ -296,7 +296,9 @@ class Button(object):
 
     # The activate function will depend on the pressed button
     def activate(self):
+        global SCORE
         if self.function == "restart":
+            SCORE = 0
             main()
 
         # self.hitbox = (self.x, self.y, 49, 48)
@@ -561,6 +563,13 @@ def draw_winer(text="GAME OVER"):
     # The delay is computed as 1000* seconds
     pygame.time.delay(10000)
 
+def create_random_list(n):
+    aux = [i for i in range(n)]
+    random_list = []
+    for i in range(n):
+        random_list.append(aux.pop(randrange(1000) % len(aux)))
+    return random_list
+
 def main():
     global SCORE
     global GOAL_REACHED
@@ -568,13 +577,16 @@ def main():
     movementMatrix()
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
-    index_list = [i for i in range(len(tile_list))]
-    random_list = [randrange(1000) for i in range(len(tile_list))]
-    print(len(index_list))
-    print(index_list)
+    #index_list = [i for i in range(len(tile_list))]
+    random_list = create_random_list(len(tile_list))
+    #print(len(index_list))
+    #print(index_list)
+    print(len(random_list))
+    print(random_list)
 
-    first_tile_index = randrange(1000) % len(index_list)
-    objective_index = index_list.pop(first_tile_index)
+    # first_tile_index = randrange(1000) % len(index_list)
+    # objective_index = index_list.pop(first_tile_index)
+    objective_index = random_list[0]
     objective = tile_list[objective_index]
     objective.x = 499 - 20
     objective.y = 508 - 20
@@ -609,10 +621,15 @@ def main():
         if event.type == GOAL_REACHED:
             # SCORE += 1
             HITBOX_SOUND.play()
-            print(len(index_list))
-            if len(index_list) != 0:
-                tile_index = randrange(1000) % len(index_list)
-                objective_index = index_list.pop(tile_index)
+            #print(len(index_list))
+            #if len(index_list) != 0:
+            if SCORE < len(tile_list):
+                # tile_index = randrange(1000) % len(index_list)
+                # tile_index = random_list[SCORE]
+                # objective_index = index_list.pop(tile_index)
+
+                objective_index = random_list[SCORE]
+                print(objective_index)
                 objective = tile_list[objective_index]
                 objective.x = 499 - 20
                 objective.y = 508 - 20
