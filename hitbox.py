@@ -4,23 +4,37 @@ import numpy as np
 import os
 import time
 from random import randrange
+import game_menu
 
 pygame.font.init()
 pygame.mixer.init()
 
+# Space that exist in the right part of the board (with buttons and messages)
 LEFT_SPACE = 300
+# Color for the space
 BLUE = (0, 155, 155)
 pygame.init()
+# Size of the screen
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
 win = pygame.display.set_mode((dimx, dimy))
 GAME_OVER = False
+# Variable that indicates if another piece is in movement. In that case, it should not be possible to select another one
+MOVEMENT = False
+# Total score. This variable is used to change the next objective
 SCORE = 0
+STEPS = 0
+REAL_MOVEMENT = False
 
 HITBOX_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'hitbox.mp3'))
 WINNER_FONT=pygame.font.SysFont('comicsans',100)
 
+# Event that indicates when the goal is reached
 GOAL_REACHED = pygame.USEREVENT+1
+MOVED_CELL = pygame.USEREVENT+2
+
+TIMER = False
+FIRST_MOVEMENT = False
 
 # FPS=60
 FPS = 120
@@ -28,18 +42,24 @@ FPS = 120
 VEL = 5
 # With this variable we adjust the hitbox of walls, so they are perfectly align,
 # and they are also aligh witn the hitbox to be added
+# Small adjustments so the hitboxes are displayed where expected
 EPSILON = 2
 CALIBRATION_X = 7-EPSILON
 CALIBRATION_Y = 7-EPSILON
 
+# Lists of coordinates of the edges of the board
 X_COORD_LIST = [11, 72, 133, 194, 255, 316, 377, 438, 499, 560, 621, 682, 743, 804, 865, 926, 987]
 Y_COORD_LIST = [20, 81, 142, 203, 264, 325, 386, 447, 508, 569, 630, 691, 752, 813, 874, 935, 996]
 
+# Name of the game
 pygame.display.set_caption("First Game")
+
 COORDS_FONT = pygame.font.SysFont('comicsans', 40)
 TEXT_FONT = pygame.font.SysFont('comicsans', 20)
 
 BLACK_PIECE = pygame.image.load(os.path.join('Assets', 'heroblack.png'))
+
+# Board image
 bg = pygame.image.load(os.path.join('Assets', 'board.png'))
 
 clock = pygame.time.Clock()
@@ -165,9 +185,11 @@ def movementMatrix():
             bm[i][j][3] = limit(i, j, "down")
             # print(bm[i][j][3])
 
-
+# Class of the pieces of the game. They have their current position in screen, current cell in board,
+# image, size, color, hitbox
 class Penguin(object):
     # def __init__(self, x, y, width, height):
+    # Constructor for the class. It only needs to know the initial position and color
     def __init__(self, x, y, color):
         self.x = x
         self.y = y
@@ -188,11 +210,19 @@ class Penguin(object):
 
 
 
-    def handle_hitbox(self):
-
+    def update_cell(self):
         self.old_cell_x = self.cell_x
         self.old_cell_y = self.cell_y
         self.cell_x, self.cell_y = cell(self.x, self.y)
+
+    # This function updates the current hitbox and cell of the piece
+    def handle_hitbox(self):
+        '''
+        self.old_cell_x = self.cell_x
+        self.old_cell_y = self.cell_y
+        self.cell_x, self.cell_y = cell(self.x, self.y)
+        '''
+        # self.update_cell()
 
         hitbox_left_x = X_COORD_LIST[self.cell_x] - CALIBRATION_X
         hitbox_left_y = Y_COORD_LIST[self.cell_y] + CALIBRATION_Y
@@ -213,7 +243,7 @@ class Penguin(object):
         self.hitbox_list.append(hitbox_right)
         self.hitbox_list.append(hitbox_down)
 
-
+    # Draws the piece
     def draw(self, win):
         # win.blit(BLACK_PIECE, (self.x, self.y))
         win.blit(self.image, (self.x, self.y))
@@ -222,7 +252,7 @@ class Penguin(object):
         self.hitbox = (self.x, self.y, 49, 48)
         #pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
 
-
+# Class of the objectives in the game. They know their color, position, image
 class Tile(object):
 
     def __init__(self, x, y, color="rainbow", shape=""):
@@ -235,10 +265,11 @@ class Tile(object):
             self.image = pygame.image.load(os.path.join('Assets', "rainbow-tile.png"))
         else:
             self.image = pygame.image.load(os.path.join('Assets', shape + "-" + color + "-tile.png"))
-
+    # Draws itself
     def draw(self,win):
         win.blit(self.image, (self.x, self.y))
 
+    # Creates a copy of itself (that will be displayed in the center as the objective
     def copy(self, tile):
         self.x = tile.x
         self.y = tile.y
@@ -247,11 +278,16 @@ class Tile(object):
         self.color = tile.color
         self.image = tile.image
 
+# Class for the players. It knows their name, score
+class Player(object):
+    def __init__(self, name):
+        self.name = name
+        self.score = 0
 
-
-
+# Class of buttons. Buttons are used to select pieces to move, set timer, go back some steps, restart the game
 class Button(object):
     # We specify the location, size and function of the button (character, timer, go back, etc)
+    # The constructor needs to know the position, size, function of button and color (assuming it is linked to a piece)
     def __init__(self, x, y, width, height, function, color=""):
         self.x = x
         self.y = y
@@ -263,6 +299,7 @@ class Button(object):
 
             self.color = color
             self.piece = Penguin(0, 0, "blue")
+            # Depending on the color of the piece, the image is selected
             if color == "red":
                 self.image_nonactive = pygame.image.load(os.path.join('Assets', 'herored.png'))
                 self.image = self.image_nonactive
@@ -288,8 +325,11 @@ class Button(object):
                 self.image = self.image_nonactive
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 #self.piece = black
+        # If this is not a piece button, then we check its function
         if function == "restart":
             self.image = pygame.image.load(os.path.join('Assets', 'restart.png'))
+        if function == "timer":
+            self.image = pygame.image.load(os.path.join('Assets', 'Time.png'))
 
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
@@ -297,14 +337,17 @@ class Button(object):
     # The activate function will depend on the pressed button
     def activate(self):
         global SCORE
+        global TIMER
         if self.function == "restart":
             SCORE = 0
             main()
+        if self.function == "timer":
+            TIMER = True
 
         # self.hitbox = (self.x, self.y, 49, 48)
 
-
-def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective):
+# This function draws the board, pieces, score and everything displayed in screen
+def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps):
     win.fill(BLUE)
     win.blit(bg, (0, 0))
     for w in HB:
@@ -314,7 +357,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
     for piece in pieces_list:
         piece.draw(win)
     objective.draw(win)
-    steps = 0
+    #steps = 0
     steps_info = TEXT_FONT.render("Number of steps: " + str(steps), True, (255, 255, 0))
     win.blit(steps_info, (1000, 220))
     aux = 2
@@ -326,8 +369,16 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
             aux += 1
         button.draw(win)
 
-    score_info =  TEXT_FONT.render("Score: " + str(SCORE), True, (255, 255, 0))
+    score_info = TEXT_FONT.render("Score: " + str(SCORE), True, (255, 255, 0))
     win.blit(score_info, (1000, 200 + aux * 20))
+    steps_info = TEXT_FONT.render("Steps: " + str(STEPS), True, (255, 255, 0))
+    win.blit(steps_info, (1000, 200 + (aux + 1) * 20))
+    time_info = TEXT_FONT.render("Time: " + str(remaining_seconds), True, (255, 255, 0))
+    win.blit(time_info, (1000, 200 + (aux + 2) * 20))
+    timer_info = TEXT_FONT.render("Time: " + str(TIMER), True, (255, 255, 0))
+    win.blit(timer_info, (1000, 200 + (aux + 3) * 20))
+    steps01_info = TEXT_FONT.render("Steps: " + str(steps), True, (255, 255, 0))
+    win.blit(steps01_info, (1000, 200 + (aux + 4) * 20))
 
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
     coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
@@ -345,7 +396,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
 def handle_clicks(x,y, button_list):
     for button in button_list:
         if button.x < x and x < button.x + button.width and button.y < y and y < button.y + button.height:
-            if button.function == "piece":
+            if button.function == "piece" and MOVEMENT == False:
                 for but in button_list:
                     if but.function == "piece":
                         but.pushed = False
@@ -354,7 +405,7 @@ def handle_clicks(x,y, button_list):
                 button.image = button.image_active
             else:
                 button.activate()
-        elif button.function == "piece":
+        elif button.function == "piece" and MOVEMENT == False:
             if button.piece.x < x and x < button.piece.x + button.piece.width and button.piece.y < y and y < button.piece.y + button.piece.height:
                 for but in button_list:
                     if but.function == "piece":
@@ -363,7 +414,7 @@ def handle_clicks(x,y, button_list):
                 button.pushed = True
                 button.image = button.image_active
 
-
+# This function indicates if the piece would hit a wall in the indicated direction
 def hit_wall(HB, direction, piece):
     epsilon = 10
     if direction == "left":
@@ -404,64 +455,66 @@ def hit_wall(HB, direction, piece):
 def handleMovement(keys, HB, piece, tile_list, objective):
     ind_r, ind_c = cell(piece.x, piece.y)
     global SCORE
+    global MOVEMENT
+    global STEPS
+    global REAL_MOVEMENT
+    step = False
     if keys[pygame.K_LEFT] and piece.state == "standing":
         piece.state = "left"
+        MOVEMENT = True
+        step = True
     elif keys[pygame.K_RIGHT] and piece.state == "standing":
         piece.state = "right"
+        MOVEMENT = True
+        step = True
     elif keys[pygame.K_DOWN] and piece.state == "standing":
         piece.state = "down"
+        MOVEMENT = True
+        step = True
     elif keys[pygame.K_UP] and piece.state == "standing":
         piece.state = "up"
+        MOVEMENT = True
+        step = True
 
     HB = hit_wall(HB, piece.state, piece)
     if piece.state == "left" and piece.x > piece.vel:
         piece.x -= piece.vel
         piece.handle_hitbox()
-        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
-        #    if objective.color == piece.color or objective.color == "rainbow":
-        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
-        #        SCORE += 1
-                #HITBOX_SOUND.play()
-        # piece.image = pygame.image.load("heroblackleft.png")
+        if step:
+            STEPS += 1
     elif piece.state == "right" and piece.x < dimx - piece.width - piece.vel - LEFT_SPACE:
         piece.x += piece.vel
         piece.handle_hitbox()
-        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
-        #    if objective.color == piece.color or objective.color == "rainbow":
-        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
-        #        SCORE += 1
-                #HITBOX_SOUND.play()
-        # piece.image = pygame.image.load("heroblackright.png")
-    # elif piece.state == "down" and piece.y < coord(limit(ind_r, ind_c, "down")[0] + 1, limit(ind_r, ind_c, "down")[1])[
-      #  1] - piece.vel:
+        if step:
+            STEPS += 1
     elif piece.state == "down" and piece.y < dimy - piece.height - piece.vel:
         piece.y += piece.vel
         piece.handle_hitbox()
-        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
-        #    if objective.color == piece.color or objective.color == "rainbow":
-        #        pygame.event.post(pygame.event.Event(GOAL_REACHED))
-        #        SCORE += 1
-                #HITBOX_SOUND.play()
-        # piece.image = pygame.image.load("heroblackdown.png")
-    # elif piece.state == "up" and piece.y > coord(limit(ind_r, ind_c, "up")[0], limit(ind_r, ind_c, "up")[1])[1] + piece.vel:
+        if step:
+            STEPS += 1
     elif piece.state == "up" and piece.y > piece.vel:
         piece.y -= piece.vel
         piece.handle_hitbox()
-        #if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
-            #if objective.color == piece.color or objective.color == "rainbow":
-            #    pygame.event.post(pygame.event.Event(GOAL_REACHED))
-            #    SCORE += 1
-                #HITBOX_SOUND.play()
-        # piece.image = pygame.image.load("heroblackup.png")
+        if step:
+            STEPS += 1
     else:
         if objective.cell_x == piece.cell_x and objective.cell_y == piece.cell_y:
-            if objective.color == piece.color or objective.color == "rainbow":
+            if STEPS != 0 and objective.color == piece.color or objective.color == "rainbow":
                 pygame.event.post(pygame.event.Event(GOAL_REACHED))
                 SCORE += 1
                 objective.cell_x = 20
+                STEPS = 0
         piece.state = "standing"
+        piece.update_cell()
+        if piece.cell_x != piece.old_cell_x or piece.cell_y != piece.old_cell_y:
+            # print("here")
+            pygame.event.post(pygame.event.Event(MOVED_CELL))
+            REAL_MOVEMENT = True
         piece.standing = True
+        MOVEMENT = False
 
+# HB is a list of hitboxes, mostly from walls. This function adds or eliminates hitboxes of the pieces,
+# depending on the needs
 def update_HB(HB, piece_list, piece):
     for p in piece_list:
         if p.hitbox_inactive:
@@ -473,6 +526,7 @@ def update_HB(HB, piece_list, piece):
     piece.hitbox_inactive = True
     return HB
 
+# This function creates the tile list (the positions, images)
 def create_tile_list():
     tile_list = []
     mr = Tile(695, 93, "red", "moon")
@@ -516,10 +570,11 @@ def create_tile_list():
 
     return tile_list
 
+# This function initializes the pieces and buttons
 def initialize_pieces_buttons():
     pieces_list = []
-    black = Penguin(200, 23, "black")
-    pieces_list.append(black)
+    # black = Penguin(200, 23, "black")
+    # pieces_list.append(black)
     # '''
     yellow = Penguin(377 + CALIBRATION_X, 874 + CALIBRATION_Y, "yellow")
     pieces_list.append(yellow)
@@ -546,23 +601,26 @@ def initialize_pieces_buttons():
     button_green = Button(1050, 100, 50, 50, "piece", "green")
     button_green.piece = green
     button_list.append(button_green)
-    button_black = Button(1000, 150, 50, 50, "piece", "black")
-    button_black.piece = black
-    button_list.append(button_black)
+    # button_black = Button(1000, 150, 50, 50, "piece", "black")
+    # button_black.piece = black
+    # button_list.append(button_black)
 
-    button_restart = Button(1000, 200, 50, 20, "restart")
+    button_restart = Button(1000, 240, 50, 20, "restart")
     button_list.append(button_restart)
+    button_timer = Button(1000, 200, 50, 20, "timer")
+    button_list.append(button_timer)
 
     return pieces_list, button_list
 
-
+# This function indicates the winner
 def draw_winer(text="GAME OVER"):
-    draw_text=WINNER_FONT.render(text,1,(255,255,0))
-    win.blit(draw_text,(1000//2-draw_text.get_width()//2, 1000//2-draw_text.get_height()//2))
+    draw_text = WINNER_FONT.render(text, True, (255, 255, 0))
+    win.blit(draw_text, (1000//2-draw_text.get_width()//2, 1000//2-draw_text.get_height()//2))
     pygame.display.update()
     # The delay is computed as 1000* seconds
     pygame.time.delay(10000)
 
+# This function creates a random list to show objectives every time a new one is needed
 def create_random_list(n):
     aux = [i for i in range(n)]
     random_list = []
@@ -570,22 +628,62 @@ def create_random_list(n):
         random_list.append(aux.pop(randrange(1000) % len(aux)))
     return random_list
 
+# This function asks for the number of players, and names if the want to use them
+def players():
+    print("Enter number of players: ")
+
+    waiting_valid_number = True
+    while waiting_valid_number:
+        number = input()
+        try:
+            n = int(number)
+            if n > 0:
+                waiting_valid_number = False
+            else:
+                print("Please enter a valid number of players: ")
+        except:
+            print("Please enter a valid number of players: ")
+    print("Do you want to name the players? Y or N")
+    waiting_valid_input = True
+    answer = ""
+    while waiting_valid_input:
+        answer = input()
+        if answer != "Y" and answer != "y" and answer != "N" and answer != "n":
+            print("Please answer Y or N")
+        else:
+            waiting_valid_input = False
+    names_list = []
+    if answer == "N" or answer == "n":
+        for i in range(n):
+            names_list.append(Player("Player " + str(i+1)))
+        return names_list
+    else:
+        for i in range(n):
+            print("Name the player number ", i+1)
+            name = input()
+            names_list.append(Player(name))
+
+    return names_list
+
+
+
+
+# This is the main function
 def main():
     global SCORE
     global GOAL_REACHED
+    global FIRST_MOVEMENT
+    global TIMER
+    global REAL_MOVEMENT
     walls()
     movementMatrix()
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
-    #index_list = [i for i in range(len(tile_list))]
     random_list = create_random_list(len(tile_list))
-    #print(len(index_list))
-    #print(index_list)
-    print(len(random_list))
-    print(random_list)
+    # print(len(random_list))
+    # print(random_list)
 
-    # first_tile_index = randrange(1000) % len(index_list)
-    # objective_index = index_list.pop(first_tile_index)
+
     objective_index = random_list[0]
     objective = tile_list[objective_index]
     objective.x = 499 - 20
@@ -593,12 +691,17 @@ def main():
     pieces_list, button_list = initialize_pieces_buttons()
     # mainloop
 
+    FIRST_MOVEMENT = False
+    remaining_seconds = 0
+    steps = 0
     run = True
 
     # '''
     while run:
         clock.tick(FPS)
         coord_x, coord_y = pygame.mouse.get_pos()
+        # An action may be done depending on the input from mouse and keyboard
+
         for event in pygame.event.get():
             # Close the game if Q is pressed
             if event.type == pygame.KEYDOWN:
@@ -617,30 +720,55 @@ def main():
                 keys = pygame.key.get_pressed()
                 HB = update_HB(HB,pieces_list, button.piece)
                 handleMovement(keys, HB, button.piece, tile_list, objective)
-        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective)
-        if event.type == GOAL_REACHED:
-            # SCORE += 1
-            HITBOX_SOUND.play()
-            #print(len(index_list))
-            #if len(index_list) != 0:
-            if SCORE < len(tile_list):
-                # tile_index = randrange(1000) % len(index_list)
-                # tile_index = random_list[SCORE]
-                # objective_index = index_list.pop(tile_index)
+        if TIMER:
+            FIRST_MOVEMENT = True
+            if remaining_seconds == 0:
+                start_time = int(time.time())
+            TIMER = False
 
-                objective_index = random_list[SCORE]
-                print(objective_index)
-                objective = tile_list[objective_index]
-                objective.x = 499 - 20
-                objective.y = 508 - 20
-            else:
-                GAME_OVER = True
-                draw_winer()
-                #main()
+        if FIRST_MOVEMENT == False:
+            remaining_seconds = 0
+        else:
+            # remaining_seconds = 15 - (int(time.time() -int(start_time)))
+            remaining_seconds = 60 - (int(time.time() - int(start_time)))
+            if remaining_seconds <= 0:
+                remaining_seconds = 0
+                TIMER = False
+
+
+        if REAL_MOVEMENT:
+            REAL_MOVEMENT = False
+            steps += 1
+            # print("here01", steps)
+
+
+        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps)
+        # If the goal is reached, a new objective is generated
+        try:
+            if event.type == GOAL_REACHED:
+                # SCORE += 1
+                #HITBOX_SOUND.play()
+                steps = 0
+                if SCORE < len(tile_list):
+                    aux = Tile(499-20, 508-20)
+                    objective_index = random_list[SCORE]
+                    # print(objective_index)
+                    # objective = tile_list[objective_index]
+                    aux.copy(tile_list[objective_index])
+                    objective = aux
+                    objective.x = 499 - 20
+                    objective.y = 508 - 20
+                else:
+                    GAME_OVER = True
+                    draw_winer()
+                    #main()
+        except:
+            pass
 
 
     pygame.quit()
     # '''
 
 if __name__ == "__main__":
+    # game_menu.game_start()
     main()
