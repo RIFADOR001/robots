@@ -29,6 +29,7 @@ BUTTON_LENGTH = 50
 HOURGLASS = 60
 
 PLAYER_NOT_SELECTED = False
+RICOCHET = False
 
 HITBOX_SOUND = pygame.mixer.Sound(os.path.join('Assets', 'hitbox.mp3'))
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
@@ -39,6 +40,7 @@ MOVED_CELL = pygame.USEREVENT+2
 
 TIMER = False
 FIRST_MOVEMENT = False
+POSITION_LIST = []
 
 # FPS=60
 FPS = 120
@@ -70,7 +72,6 @@ bg = pygame.image.load(os.path.join('Assets', 'board.png'))
 clock = pygame.time.Clock()
 
 player_list = []
-
 
 
 def cell(x, y):
@@ -134,10 +135,6 @@ def walls_hitbox(VW_list, HW_list):
     dw = pygame.Rect(0 - CALIBRATION_X, 1000 - 10 - CALIBRATION_Y, 1000 + 2 * CALIBRATION_X, 0 + 2 * CALIBRATION_Y)
     HB.append(dw)
     return HB
-
-
-
-
 
 
 # Class of the pieces of the game. They have their current position in screen, current cell in board,
@@ -205,7 +202,8 @@ class Penguin(object):
 
         # self.hitbox = (self.x + 17, self.y + 11, 29, 52)
         self.hitbox = (self.x, self.y, 49, 48)
-        #pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+        # pygame.draw.rect(win, (255, 0, 0), self.hitbox, 2)
+
 
 # Class of the objectives in the game. They know their color, position, image
 class Tile(object):
@@ -213,15 +211,16 @@ class Tile(object):
     def __init__(self, x, y, color="rainbow", shape=""):
         self.x = x
         self.y = y
-        self.cell_x, self.cell_y = cell(x,y)
+        self.cell_x, self.cell_y = cell(x, y)
         self.color = color
         self.active = False
         if color == "rainbow":
             self.image = pygame.image.load(os.path.join('Assets', "rainbow-tile.png"))
         else:
             self.image = pygame.image.load(os.path.join('Assets', shape + "-" + color + "-tile.png"))
+
     # Draws itself
-    def draw(self,win):
+    def draw(self, win):
         win.blit(self.image, (self.x, self.y))
 
     # Creates a copy of itself (that will be displayed in the center as the objective
@@ -468,7 +467,7 @@ def hit_wall(HB, direction, piece):
 
 
 # Handles the movement of the pieces, and verifies the conditions
-def handleMovement(keys, HB, piece, tile_list, objective):
+def handleMovement(keys, HB, piece, tile_list, objective, pieces_list):
     ind_r, ind_c = cell(piece.x, piece.y)
     global SCORE
     global MOVEMENT
@@ -478,7 +477,8 @@ def handleMovement(keys, HB, piece, tile_list, objective):
     global ACTIVE_PLAYER
     global PLAYER_NOT_SELECTED
     step = False
-    if ACTIVE_PLAYER != AUX_PLAYER:
+    # if ACTIVE_PLAYER != AUX_PLAYER:
+    if True:
         if keys[pygame.K_LEFT] and piece.state == "standing":
             piece.state = "left"
             MOVEMENT = True
@@ -531,6 +531,7 @@ def handleMovement(keys, HB, piece, tile_list, objective):
             piece.handle_hitbox()
             if piece.cell_x != piece.old_cell_x or piece.cell_y != piece.old_cell_y:
                 # print("here")
+                updatePositionList(pieces_list)
                 pygame.event.post(pygame.event.Event(MOVED_CELL))
                 REAL_MOVEMENT = True
             piece.standing = True
@@ -705,7 +706,14 @@ def players():
     return names_list
 
 
-
+def updatePositionList(pieces_list):
+    aux_list = []
+    for p in pieces_list:
+        # print(p)
+        aux_list.append((p.x, p.y))
+        # print(p)
+    POSITION_LIST.append(aux_list)
+    print(POSITION_LIST)
 
 # This is the main function
 def main(player_list=[Player("Player 1")]):
@@ -715,6 +723,8 @@ def main(player_list=[Player("Player 1")]):
     global TIMER
     global REAL_MOVEMENT
     global STEPS
+    global POSITION_LIST
+    POSITION_LIST = []
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
     random_list = create_random_list(len(tile_list))
@@ -765,7 +775,7 @@ def main(player_list=[Player("Player 1")]):
             if button.pushed == True:
                 keys = pygame.key.get_pressed()
                 HB = update_HB(HB, pieces_list, button.piece)
-                handleMovement(keys, HB, button.piece, tile_list, objective)
+                handleMovement(keys, HB, button.piece, tile_list, objective, pieces_list)
         if TIMER:
             FIRST_MOVEMENT = True
             if remaining_seconds == 0:
@@ -799,6 +809,8 @@ def main(player_list=[Player("Player 1")]):
                 # print("goal reached")
                 steps = 0
                 STEPS = 0
+                POSITION_LIST = []
+                updatePositionList(pieces_list)
                 if SCORE < len(tile_list):
                     aux = Tile(499-20, 508-20)
                     objective_index = random_list[SCORE]

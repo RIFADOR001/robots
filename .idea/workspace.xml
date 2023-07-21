@@ -6,8 +6,7 @@
   <component name="ChangeListManager">
     <list default="true" id="9e9de826-a5e9-415c-826a-f5b9ec5e2e7f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/Assets/en-ricochet_robot-rules.pdf" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/game_menu.py" beforeDir="false" afterPath="$PROJECT_DIR$/game_menu.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/background.py" beforeDir="false" afterPath="$PROJECT_DIR$/background.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/hitbox.py" beforeDir="false" afterPath="$PROJECT_DIR$/hitbox.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -34,7 +33,7 @@
     &quot;settings.editor.selected.configurable&quot;: &quot;preferences.editor&quot;
   }
 }</component>
-  <component name="RunManager" selected="Python.background">
+  <component name="RunManager" selected="Python.hitbox">
     <configuration name="background" type="PythonConfigurationType" factoryName="Python" temporary="true" nameIsGenerated="true">
       <module name="robots" />
       <option name="INTERPRETER_OPTIONS" value="" />
@@ -100,8 +99,8 @@
     </configuration>
     <recent_temporary>
       <list>
-        <item itemvalue="Python.background" />
         <item itemvalue="Python.hitbox" />
+        <item itemvalue="Python.background" />
         <item itemvalue="Python.game_menu" />
       </list>
     </recent_temporary>
