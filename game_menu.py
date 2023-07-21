@@ -18,7 +18,7 @@ BLUE = (0, 155, 155)
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
 screen = pygame.display.set_mode((dimx, dimy))
-screen1_x, screen1_y = 600, 400
+screen1_x, screen1_y = 650, 400
 screen1 = pygame.display.set_mode((screen1_x, screen1_y))
 
 pygame.init()
@@ -116,7 +116,7 @@ def userInput():
         clock.tick(60)
     return user_text
 
-def inputBox(request=""):
+def inputBox(request="", explanation=""):
     global active
     user_text = ''
     getting_text = True
@@ -155,6 +155,8 @@ def inputBox(request=""):
         # steps_info = base_font.render(request, True, (235, 235, 0))
         request_text = base_font.render(request, True, (0, 0, 0))
         screen1.blit(request_text, ((screen1_x-request_text.get_width())//2, (screen1_y-request_text.get_height())//2-height))
+        explanation_text = base_font.render(explanation, True, (0, 0, 0))
+        screen1.blit(explanation_text, ((screen1_x-explanation_text.get_width())//2, (screen1_y-explanation_text.get_height())//2+height))
         # screen1.blit(request_text, (width//2, height//2))
         # WIN.blit(draw_text, (WIDTH // 2 - draw_text.get_width() // 2, HEIGHT // 2 - draw_text.get_height() // 2))
         # input_rect = pygame.Rect((screen1_x - width) // 2, (screen1_y - height) // 2, width, height)
@@ -183,8 +185,55 @@ def inputBox(request=""):
         # clock.tick(60) means that for every second at most
         # 60 frames should be passed.
         clock.tick(60)
-    return user_text
+    return user_text.strip()
 
+
+def bid(bidding, name, steps=0):
+    waiting_bid = True
+    req1 = "What is your new bid " + name + "?"
+    req2 = "Please write a valid bid " + name
+    exp1 = "(You must introduce a number  of steps for your solution)"
+    exp2 = "(The number of steps must be lower than your previous bid " + str(steps) + ")"
+    if bidding:
+
+        while waiting_bid:
+
+            try:
+                new_bid = int(inputBox(req1, exp1))
+                if new_bid > steps:
+                    req1 = req2
+                    exp1 = exp2
+                else:
+                    waiting_bid = False
+                    return new_bid
+            except:
+                req1 = req2
+
+
+    else:
+        while waiting_bid:
+            try:
+                new_bid = int(inputBox(req1, exp1))
+                waiting_bid = False
+            except:
+                req1 = req2
+        return new_bid
+
+
+def adjustTime():
+    req1 = "Please enter the time in seconds (between 5 and 300): "
+    req2 = "Please enter a valid time in seconds (between 5 and 300): "
+    waiting_valid_number = True
+    while waiting_valid_number:
+        number = inputBox(req1)
+        try:
+            s = int(number)
+            if s > 4 and s < 301:
+                waiting_valid_number = False
+
+        except:
+            req1 = req2
+    return s
 
 def players2():
     # print("Enter number of players: ")
@@ -197,8 +246,8 @@ def players2():
             n = int(number)
             if n > 0:
                 waiting_valid_number = False
-            else:
-                print()
+            # else:
+            #    print()
         except:
             req1 = req2
             # print("Please enter a valid number of players: ")
@@ -208,6 +257,8 @@ def players2():
     answer = ""
     req1 = "Do you want to name the players? Y or N"
     req2 = "Do you want to name the players? Please answer Y or N"
+    reqname1 = "Name the player number "
+    reqname2 = "Place write a valid name for player number "
     while waiting_valid_input:
 
         answer = inputBox(req1)
@@ -222,8 +273,14 @@ def players2():
         return names_list
     else:
         for i in range(n):
+            waiting_valid_name = True
             # print("Name the player number ", i+1)
-            name = inputBox("Name the player number " + str(i+1))
+            while waiting_valid_name:
+                name = inputBox(reqname1 + str(i+1))
+                if name == "":
+                    reqname1 = reqname2
+                else:
+                    waiting_valid_name = False
             names_list.append(hitbox.Player(name))
 
     return names_list
@@ -286,8 +343,12 @@ if __name__ == "__main__":
     # game_start()
     # print(inputBox("What is the number of players?"))
     # print(players2())
+    # print(adjustTime())
+    # bid(False, "Player 1")
+    '''
     list = players2()
     for l in list:
         print(l.name)
+    '''
 
 

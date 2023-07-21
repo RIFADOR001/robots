@@ -26,6 +26,7 @@ SCORE = 0
 STEPS = 0
 REAL_MOVEMENT = False
 BUTTON_LENGTH = 50
+HOURGLASS = 60
 
 PLAYER_NOT_SELECTED = False
 
@@ -107,40 +108,6 @@ HW_list = [(255, 81), (682, 81), (926, 142),
          (14, 813), (377, 874), (743, 874)]
 # (133, 501), (316, 623), (682, 623), (72, 684), (255, 745), (621, 745), (804, 745), (926, 745),
 #         (14, 806), (377, 867), (743, 867)]
-
-
-def walls():
-    # First we fill the boundary
-    for i in range(17):
-        HW[0][i] = 1
-        HW[16][i] = 1
-    # Center zone
-    HW[7][7] = 1
-    HW[7][8] = 1
-    HW[9][7] = 1
-    HW[9][8] = 1
-    # Walls in the board
-    HW[1][4] = 1
-    HW[1][11] = 1
-    HW[2][15] = 1
-    HW[3][14] = 1
-    HW[4][1] = 1
-    HW[5][5] = 1
-    HW[5][9] = 1
-    HW[6][0] = 1
-    HW[7][3] = 1
-    HW[7][12] = 1
-    HW[8][2] = 1
-    HW[10][5] = 1
-    HW[10][11] = 1
-    HW[11][1] = 1
-    HW[12][4] = 1
-    HW[12][10] = 1
-    HW[12][13] = 1
-    HW[12][15] = 1
-    HW[13][0] = 1
-    HW[14][6] = 1
-    HW[14][12] = 1
 
 
 # Function to create the list of rectangles that define the hitbox for the walls
@@ -271,6 +238,8 @@ class Player(object):
     def __init__(self, name):
         self.name = name
         self.score = 0
+        self.bid_status = False
+        self.bid = 0
 
 AUX_PLAYER = Player("None")
 ACTIVE_PLAYER = AUX_PLAYER
@@ -330,6 +299,10 @@ class Button(object):
         if function == "player":
             self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
             self.player = AUX_PLAYER
+        if function == "rules":
+            self.image = pygame.image.load(os.path.join('Assets', 'Rules.png'))
+        if function == "settings":
+            self.image = pygame.image.load(os.path.join('Assets', 'Settings.png'))
 
     def draw(self, win):
         # TEXT_FONT = pygame.font.SysFont('comicsans', 20)
@@ -348,6 +321,7 @@ class Button(object):
         global TIMER
         global ACTIVE_PLAYER
         global PLAYER_NOT_SELECTED
+        global HOURGLASS
         if self.function == "restart":
             SCORE = 0
             main(player_list)
@@ -358,10 +332,19 @@ class Button(object):
         if self.function == "start_no":
             self.pushed = True
         if self.function == "player":
-            print(self.player.name)
+            # print(self.player.name)
             ACTIVE_PLAYER = self.player
             TIMER = True
             PLAYER_NOT_SELECTED = False
+            self.player.bid = game_menu.bid(self.player.bid_status, self.player.name, self.player.bid)
+            self.player.bid_status = True
+            # game_menu.inputBox("")
+        if self.function == "rules":
+            path = os.path.join('Assets','rules.pdf')
+            os.system("open " + path)
+            #os.system("open Assets/rules.pdf")
+        if self.function == "settings":
+            HOURGLASS = game_menu.adjustTime()
 
         # self.hitbox = (self.x, self.y, 49, 48)
 
@@ -401,6 +384,8 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
     win.blit(steps01_info, (1000, 200 + (aux + 4) * 20))
     steps01_info = TEXT_FONT.render("Active player: " + str(ACTIVE_PLAYER.name), True, (255, 255, 0))
     win.blit(steps01_info, (1000, 200 + (aux + 5) * 20))
+    waiting_info = TEXT_FONT.render("Waiting time: " + str(HOURGLASS), True, (255, 255, 0))
+    win.blit(waiting_info, (1000, 200 + (aux + 6) * 20))
     # '''
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
     coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
@@ -650,7 +635,10 @@ def initialize_pieces_buttons(player_list=[]):
     button_list.append(button_restart)
     button_timer = Button(1000, 200, 50, 20, "timer")
     button_list.append(button_timer)
-
+    button_rules = Button(1000, 180, 50, 20, "rules")
+    button_list.append(button_rules)
+    button_settings = Button(1000, 220, 50, 20, "settings")
+    button_list.append(button_settings)
 
     aux = 1
     for p in player_list:
@@ -727,7 +715,6 @@ def main(player_list=[Player("Player 1")]):
     global TIMER
     global REAL_MOVEMENT
     global STEPS
-    walls()
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
     random_list = create_random_list(len(tile_list))
@@ -789,7 +776,8 @@ def main(player_list=[Player("Player 1")]):
             remaining_seconds = 0
         else:
             # remaining_seconds = 15 - (int(time.time() -int(start_time)))
-            remaining_seconds = 60 - (int(time.time() - int(start_time)))
+            # remaining_seconds = 60 - (int(time.time() - int(start_time)))
+            remaining_seconds = HOURGLASS - (int(time.time() - int(start_time)))
             if remaining_seconds <= 0:
                 remaining_seconds = 0
                 TIMER = False
@@ -838,6 +826,6 @@ player_list = [player1, player2]
 
 if __name__ == "__main__":
     # game_menu.game_start()
-    # main(player_list)
+    main(player_list)
     # main(game_menu.players2())
-    main()
+    # main()
