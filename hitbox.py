@@ -257,7 +257,7 @@ class Button(object):
         self.pushed = False
         # self.player = ""
         self.score = 0
-        if function == "piece":
+        if function == "Piece":
 
             self.color = color
             self.piece = Penguin(0, 0, "blue")
@@ -288,39 +288,28 @@ class Button(object):
                 self.image_active = pygame.image.load(os.path.join('Assets', color + '_active.png'))
                 #self.piece = black
         # If this is not a piece button, then we check its function
-        if function == "restart":
-            self.image = pygame.image.load(os.path.join('Assets', 'restart.png'))
-        if function == "timer":
-            self.image = pygame.image.load(os.path.join('Assets', 'Time.png'))
-        if function == "start_yes":
-            self.image = pygame.image.load(os.path.join('Assets', 'Yes.png'))
-        if function == "start_no":
-            self.image = pygame.image.load(os.path.join('Assets', 'No.png'))
-        if function == "player":
-            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
-            self.player = AUX_PLAYER
-        if function == "rules":
-            self.image = pygame.image.load(os.path.join('Assets', 'Rules.png'))
-        if function == "settings":
-            self.image = pygame.image.load(os.path.join('Assets', 'Settings.png'))
-        if function == "back":
-            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
-        if function == "forward":
-            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
-        if function == "print_list":
-            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
-        if function == "restart_position":
+        elif self.function == "Restart position":
+            self.image = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'Blank.png')), (100, 20))
+        else:
             self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
 
     def draw(self, win):
         # TEXT_FONT = pygame.font.SysFont('comicsans', 20)
 
         win.blit(self.image, (self.x, self.y))
-        if self.function == "player":
+        if self.function == "Piece":
+            pass
+        elif self.function == "Player":
             name_info = TEXT_FONT1.render(self.player.name, True, (0, 0, 0))
-            score_info = TEXT_FONT1.render("Score: " + str(self.player.score), True, (0, 0, 0))
+            if self.player.bid_status:
+                score_info = TEXT_FONT1.render("Score: " + str(self.player.score) + "   Bid: " + str(self.player.bid), True, (0, 0, 0))
+            else:
+                score_info = TEXT_FONT1.render("Score: " + str(self.player.score), True, (0, 0, 0))
             win.blit(name_info, (self.x, self.y))
             win.blit(score_info, (self.x + BUTTON_LENGTH + 5, self.y))
+        else:
+            button_info = TEXT_FONT1.render(self.function, True, (0, 0, 0))
+            win.blit(button_info, (self.x, self.y))
 
 
     # The activate function will depend on the pressed button
@@ -332,16 +321,16 @@ class Button(object):
         global HOURGLASS
         global INDEX
         global STEPS
-        if self.function == "restart":
+        if self.function == "Restart":
             SCORE = 0
             main(player_list)
-        if self.function == "timer":
+        if self.function == "Time":
             TIMER = True
-        if self.function == "start_yes":
+        if self.function == "Start yes":
             self.pushed = True
-        if self.function == "start_no":
+        if self.function == "Start no":
             self.pushed = True
-        if self.function == "player":
+        if self.function == "Player":
             # print(self.player.name)
             ACTIVE_PLAYER = self.player
             TIMER = True
@@ -349,13 +338,13 @@ class Button(object):
             self.player.bid = game_menu.bid(self.player.bid_status, self.player.name, self.player.bid)
             self.player.bid_status = True
             # game_menu.inputBox("")
-        if self.function == "rules":
+        if self.function == "Rules":
             path = os.path.join('Assets','rules.pdf')
             os.system("open " + path)
             #os.system("open Assets/rules.pdf")
-        if self.function == "settings":
+        if self.function == "Settings":
             HOURGLASS = game_menu.adjustTime()
-        if self.function == "back":
+        if self.function == "Back":
             n = len(POSITION_LIST)
             if INDEX > 0:
                 STEPS -= 2
@@ -365,9 +354,9 @@ class Button(object):
                     p.x = POSITION_LIST[INDEX][aux][0]
                     p.y = POSITION_LIST[INDEX][aux][1]
                     aux +=1
-            print("back")
-        if self.function == "forward":
-            print("forward")
+            print("Back")
+        if self.function == "Forward":
+            print("Forward")
             n = len(POSITION_LIST)
             if INDEX < n-1:
                 INDEX += 1
@@ -377,9 +366,9 @@ class Button(object):
                     p.y = POSITION_LIST[INDEX][aux][1]
                     aux +=1
 
-        if self.function == "print_list":
+        if self.function == "Print list":
             print(POSITION_LIST)
-        if self.function == "restart_position":
+        if self.function == "Restart position":
             INDEX = -1
             aux = 0
             for p in pieces_list:
@@ -406,7 +395,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
     # win.blit(steps_info, (1000, 220))
     aux = 10
     for button in button_list:
-        # if button.function == "piece":
+        # if button.function == "Piece":
         #    button_info = TEXT_FONT.render("Pushed " + button.color + " button? " + str(button.pushed), True, (255, 255, 0))
 
             # win.blit(button_info, (1000, 200 + aux*20))
@@ -437,7 +426,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
 
     '''
     for p in player_list:
-        but = Button(1000, 200 + aux*20 +50, 50, 20, "player")
+        but = Button(1000, 200 + aux*20 +50, 50, 20, "Player")
         but.player = p.name
         but.draw(win)
         aux += 1
@@ -456,19 +445,19 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
 def handle_clicks(x,y, button_list):
     for button in button_list:
         if button.x < x and x < button.x + button.width and button.y < y and y < button.y + button.height:
-            if button.function == "piece" and MOVEMENT == False:
+            if button.function == "Piece" and MOVEMENT == False:
                 for but in button_list:
-                    if but.function == "piece":
+                    if but.function == "Piece":
                         but.pushed = False
                         but.image = but.image_nonactive
                 button.pushed = True
                 button.image = button.image_active
             else:
                 button.activate()
-        elif button.function == "piece" and MOVEMENT == False:
+        elif button.function == "Piece" and MOVEMENT == False:
             if button.piece.x < x and x < button.piece.x + button.piece.width and button.piece.y < y and y < button.piece.y + button.piece.height:
                 for but in button_list:
-                    if but.function == "piece":
+                    if but.function == "Piece":
                         but.pushed = False
                         but.image = but.image_nonactive
                 button.pushed = True
@@ -661,43 +650,45 @@ def initialize_pieces_buttons(player_list=[]):
     # '''
 
     button_list = []
-    button_yellow = Button(1000, 50, 50, 50, "piece", "yellow")
+    button_yellow = Button(1000, 50, 50, 50, "Piece", "yellow")
     button_yellow.piece = yellow
     button_list.append(button_yellow)
-    button_red = Button(1050, 50, 50, 50, "piece", "red")
+    button_red = Button(1050, 50, 50, 50, "Piece", "red")
     button_red.piece = red
     button_list.append(button_red)
-    button_blue = Button(1000, 100, 50, 50, "piece", "blue")
+    button_blue = Button(1000, 100, 50, 50, "Piece", "blue")
     button_blue.piece = blue
     button_list.append(button_blue)
-    button_green = Button(1050, 100, 50, 50, "piece", "green")
+    button_green = Button(1050, 100, 50, 50, "Piece", "green")
     button_green.piece = green
     button_list.append(button_green)
-    # button_black = Button(1000, 150, 50, 50, "piece", "black")
-    # button_black.piece = black
-    # button_list.append(button_black)
-
-    button_restart = Button(1000, 240, 50, 20, "restart")
+    '''
+    if BLACK:
+        button_black = Button(1000, 150, 50, 50, "Piece", "black")
+        button_black.piece = black
+        button_list.append(button_black)
+    '''
+    button_restart = Button(1000, 240, 50, 20, "Restart")
     button_list.append(button_restart)
-    button_timer = Button(1000, 200, 50, 20, "timer")
+    button_timer = Button(1000, 200, 50, 20, "Time")
     button_list.append(button_timer)
-    button_rules = Button(1000, 180, 50, 20, "rules")
+    button_rules = Button(1000, 180, 50, 20, "Rules")
     button_list.append(button_rules)
-    button_settings = Button(1000, 220, 50, 20, "settings")
+    button_settings = Button(1000, 220, 50, 20, "Settings")
     button_list.append(button_settings)
 
-    button_back = Button(1050, 200, 50, 20, "back")
+    button_back = Button(1050, 200, 50, 20, "Back")
     button_list.append(button_back)
-    button_forward = Button(1100, 200, 50, 20, "forward")
+    button_forward = Button(1100, 200, 50, 20, "Forward")
     button_list.append(button_forward)
-    button_print = Button(1100, 250, 50, 20, "print_list")
+    button_print = Button(1100, 250, 50, 20, "Print list")
     button_list.append(button_print)
-    button_restart_position = Button(1100, 350, 50, 20, "restart_position")
+    button_restart_position = Button(1100, 350, 100, 20, "Restart position")
     button_list.append(button_restart_position)
 
     aux = 1
     for p in player_list:
-        but = Button(1000, 200 + aux * 20 + 50, 50, 20, "player")
+        but = Button(1000, 200 + aux * 20 + 50, 50, 20, "Player")
         but.player = p
 
         # but.draw(win)
@@ -861,7 +852,7 @@ def main(player_list=[Player("Player 1")]):
             REAL_MOVEMENT = False
             STEPS += 1
             steps += 1
-            print("here01", steps)
+            # print("here01", steps)
 
 
         drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list)

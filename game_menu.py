@@ -21,6 +21,8 @@ screen = pygame.display.set_mode((dimx, dimy))
 screen1_x, screen1_y = 650, 400
 screen1 = pygame.display.set_mode((screen1_x, screen1_y))
 
+blank = pygame.image.load(os.path.join('Assets', "Blank(650-400).png"))
+
 pygame.init()
 
 clock = pygame.time.Clock()
@@ -57,6 +59,7 @@ def userInput():
     user_text = ''
     getting_text = True
     while getting_text:
+
         for event in pygame.event.get():
 
             # if user types QUIT then the screen will close
@@ -121,6 +124,7 @@ def inputBox(request="", explanation=""):
     user_text = ''
     getting_text = True
     while getting_text:
+        screen.blit(blank, (0, 0))
         for event in pygame.event.get():
 
             # if user types QUIT then the screen will close
@@ -151,7 +155,7 @@ def inputBox(request="", explanation=""):
                     user_text += event.unicode
 
         # it will set background color of screen
-        screen1.fill((255, 255, 255))
+        # screen1.fill((255, 255, 255))
         # steps_info = base_font.render(request, True, (235, 235, 0))
         request_text = base_font.render(request, True, (0, 0, 0))
         screen1.blit(request_text, ((screen1_x-request_text.get_width())//2, (screen1_y-request_text.get_height())//2-height))
@@ -237,7 +241,7 @@ def adjustTime():
 
 def players2():
     # print("Enter number of players: ")
-    req1 =  "Enter number of players: "
+    req1 = "Enter number of players: "
     req2 = "Please enter a valid number of players: "
     waiting_valid_number = True
     while waiting_valid_number:
@@ -311,8 +315,8 @@ def game_start():
     # pygame.init() will initialize all
     # imported module
     screen.fill(BLUE)
-    button_yes = hitbox.Button(340, 240, 50, 20, "start_yes")
-    button_no = hitbox.Button(400, 240, 50, 20, "start_no")
+    button_yes = hitbox.Button(340, 240, 50, 20, "Start yes")
+    button_no = hitbox.Button(400, 240, 50, 20, "Start no")
     button_list = [button_yes, button_no]
     waiting = True
     while waiting:
