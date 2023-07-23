@@ -72,7 +72,8 @@ bg = pygame.image.load(os.path.join('Assets', 'board.png'))
 clock = pygame.time.Clock()
 
 player_list = []
-
+pieces_list = []
+INDEX = -1
 
 def cell(x, y):
     # return (int(y/(1000/16)), int(x/(1000/16)))
@@ -302,6 +303,14 @@ class Button(object):
             self.image = pygame.image.load(os.path.join('Assets', 'Rules.png'))
         if function == "settings":
             self.image = pygame.image.load(os.path.join('Assets', 'Settings.png'))
+        if function == "back":
+            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
+        if function == "forward":
+            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
+        if function == "print_list":
+            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
+        if function == "restart_position":
+            self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
 
     def draw(self, win):
         # TEXT_FONT = pygame.font.SysFont('comicsans', 20)
@@ -321,6 +330,8 @@ class Button(object):
         global ACTIVE_PLAYER
         global PLAYER_NOT_SELECTED
         global HOURGLASS
+        global INDEX
+        global STEPS
         if self.function == "restart":
             SCORE = 0
             main(player_list)
@@ -344,6 +355,38 @@ class Button(object):
             #os.system("open Assets/rules.pdf")
         if self.function == "settings":
             HOURGLASS = game_menu.adjustTime()
+        if self.function == "back":
+            n = len(POSITION_LIST)
+            if INDEX > 0:
+                STEPS -= 2
+                INDEX -= 1
+                aux = 0
+                for p in pieces_list:
+                    p.x = POSITION_LIST[INDEX][aux][0]
+                    p.y = POSITION_LIST[INDEX][aux][1]
+                    aux +=1
+            print("back")
+        if self.function == "forward":
+            print("forward")
+            n = len(POSITION_LIST)
+            if INDEX < n-1:
+                INDEX += 1
+                aux = 0
+                for p in pieces_list:
+                    p.x = POSITION_LIST[INDEX][aux][0]
+                    p.y = POSITION_LIST[INDEX][aux][1]
+                    aux +=1
+
+        if self.function == "print_list":
+            print(POSITION_LIST)
+        if self.function == "restart_position":
+            INDEX = -1
+            aux = 0
+            for p in pieces_list:
+                p.x = POSITION_LIST[0][aux][0]
+                p.y = POSITION_LIST[0][aux][1]
+                aux += 1
+
 
         # self.hitbox = (self.x, self.y, 49, 48)
 
@@ -385,6 +428,8 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
     win.blit(steps01_info, (1000, 200 + (aux + 5) * 20))
     waiting_info = TEXT_FONT.render("Waiting time: " + str(HOURGLASS), True, (255, 255, 0))
     win.blit(waiting_info, (1000, 200 + (aux + 6) * 20))
+    INDEX_info = TEXT_FONT.render("INDEX: " + str(INDEX), True, (255, 255, 0))
+    win.blit(INDEX_info, (1000, 200 + (aux + 7) * 20))
     # '''
     pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
     coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
@@ -553,7 +598,7 @@ def update_HB(HB, piece_list, piece):
     piece.hitbox_inactive = True
     return HB
 
-# This function creates the tile list (the positions, images)
+# This function creates the token list (the positions, images)
 def create_tile_list():
     tile_list = []
     mr = Tile(695, 93, "red", "moon")
@@ -641,6 +686,15 @@ def initialize_pieces_buttons(player_list=[]):
     button_settings = Button(1000, 220, 50, 20, "settings")
     button_list.append(button_settings)
 
+    button_back = Button(1050, 200, 50, 20, "back")
+    button_list.append(button_back)
+    button_forward = Button(1100, 200, 50, 20, "forward")
+    button_list.append(button_forward)
+    button_print = Button(1100, 250, 50, 20, "print_list")
+    button_list.append(button_print)
+    button_restart_position = Button(1100, 350, 50, 20, "restart_position")
+    button_list.append(button_restart_position)
+
     aux = 1
     for p in player_list:
         but = Button(1000, 200 + aux * 20 + 50, 50, 20, "player")
@@ -707,13 +761,15 @@ def players():
 
 
 def updatePositionList(pieces_list):
+    global INDEX
     aux_list = []
     for p in pieces_list:
         # print(p)
         aux_list.append((p.x, p.y))
         # print(p)
     POSITION_LIST.append(aux_list)
-    print(POSITION_LIST)
+    INDEX += 1
+    # print(POSITION_LIST)
 
 # This is the main function
 def main(player_list=[Player("Player 1")]):
@@ -724,7 +780,10 @@ def main(player_list=[Player("Player 1")]):
     global REAL_MOVEMENT
     global STEPS
     global POSITION_LIST
-    POSITION_LIST = []
+    global pieces_list
+    global INDEX
+
+
     HB = walls_hitbox(VW_list, HW_list)
     tile_list = create_tile_list()
     random_list = create_random_list(len(tile_list))
@@ -742,12 +801,17 @@ def main(player_list=[Player("Player 1")]):
     objective.x = 499 - 20
     objective.y = 508 - 20
     pieces_list, button_list = initialize_pieces_buttons(player_list)
+
+    INDEX = -1
+    POSITION_LIST = []
+    updatePositionList(pieces_list)
     # mainloop
 
     FIRST_MOVEMENT = False
     remaining_seconds = 0
     steps = 0
     STEPS = 0
+
     run = True
 
     # '''
@@ -797,7 +861,7 @@ def main(player_list=[Player("Player 1")]):
             REAL_MOVEMENT = False
             STEPS += 1
             steps += 1
-            # print("here01", steps)
+            print("here01", steps)
 
 
         drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list)
@@ -810,8 +874,9 @@ def main(player_list=[Player("Player 1")]):
                 steps = 0
                 STEPS = 0
                 POSITION_LIST = []
+                INDEX = -1
                 updatePositionList(pieces_list)
-                if SCORE < len(tile_list):
+                if SCORE < 5: # len(tile_list):
                     aux = Tile(499-20, 508-20)
                     objective_index = random_list[SCORE]
                     # print(objective_index)
