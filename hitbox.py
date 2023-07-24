@@ -38,9 +38,13 @@ WINNER_FONT = pygame.font.SysFont('comicsans', 100)
 GOAL_REACHED = pygame.USEREVENT+1
 MOVED_CELL = pygame.USEREVENT+2
 
+SHOW_HITBOX = True
+
 TIMER = False
 FIRST_MOVEMENT = False
 POSITION_LIST = []
+
+
 
 # FPS=60
 FPS = 120
@@ -302,9 +306,9 @@ class Button(object):
         elif self.function == "Player":
             name_info = TEXT_FONT1.render(self.player.name, True, (0, 0, 0))
             if self.player.bid_status:
-                score_info = TEXT_FONT1.render("Score: " + str(self.player.score) + "   Bid: " + str(self.player.bid), True, (0, 0, 0))
+                score_info = TEXT_FONT1.render(f"Score: {self.player.score}  Bid: {self.player.bid}", True, (0, 0, 0))
             else:
-                score_info = TEXT_FONT1.render("Score: " + str(self.player.score), True, (0, 0, 0))
+                score_info = TEXT_FONT1.render(f"Score: {self.player.score}", True, (0, 0, 0))
             win.blit(name_info, (self.x, self.y))
             win.blit(score_info, (self.x + BUTTON_LENGTH + 5, self.y))
         else:
@@ -383,15 +387,16 @@ class Button(object):
 def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list):
     win.fill(BLUE)
     win.blit(bg, (0, 0))
-    for w in HB:
-        pygame.draw.rect(win, (255, 0, 0), w)
+    if SHOW_HITBOX:
+        for w in HB:
+            pygame.draw.rect(win, (255, 0, 0), w)
     for t in tile_list:
         t.draw(win)
     for piece in pieces_list:
         piece.draw(win)
     objective.draw(win)
     # steps = 0
-    steps_info = TEXT_FONT.render("Number of steps: " + str(steps), True, (255, 255, 0))
+    steps_info = TEXT_FONT.render(f"Number of steps: {steps}", True, (255, 255, 0))
     # win.blit(steps_info, (1000, 220))
     aux = 10
     for button in button_list:
@@ -403,25 +408,25 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
         button.draw(win)
 
     # '''
-    score_info = TEXT_FONT.render("Tokens obtained: " + str(SCORE), True, (255, 255, 0))
+    score_info = TEXT_FONT.render(f"Tokens obtained: {SCORE}", True, (255, 255, 0))
     win.blit(score_info, (1000, 200 + aux * 20))
-    steps_info = TEXT_FONT.render("GLOBAL Steps: " + str(STEPS), True, (255, 255, 0))
+    steps_info = TEXT_FONT.render(f"GLOBAL Steps: {STEPS}", True, (255, 255, 0))
     win.blit(steps_info, (1000, 200 + (aux + 1) * 20))
-    time_info = TEXT_FONT.render("Time: " + str(remaining_seconds), True, (255, 255, 0))
+    time_info = TEXT_FONT.render(f"Time: {remaining_seconds}", True, (255, 255, 0))
     win.blit(time_info, (1000, 200 + (aux + 2) * 20))
-    timer_info = TEXT_FONT.render("Time: " + str(TIMER), True, (255, 255, 0))
+    timer_info = TEXT_FONT.render(f"Time: {TIMER}", True, (255, 255, 0))
     win.blit(timer_info, (1000, 200 + (aux + 3) * 20))
-    steps01_info = TEXT_FONT.render("Steps: " + str(steps), True, (255, 255, 0))
+    steps01_info = TEXT_FONT.render(f"Steps: {steps}", True, (255, 255, 0))
     win.blit(steps01_info, (1000, 200 + (aux + 4) * 20))
-    steps01_info = TEXT_FONT.render("Active player: " + str(ACTIVE_PLAYER.name), True, (255, 255, 0))
+    steps01_info = TEXT_FONT.render(f"Active player: {ACTIVE_PLAYER.name}", True, (255, 255, 0))
     win.blit(steps01_info, (1000, 200 + (aux + 5) * 20))
-    waiting_info = TEXT_FONT.render("Waiting time: " + str(HOURGLASS), True, (255, 255, 0))
+    waiting_info = TEXT_FONT.render(f"Waiting time: {HOURGLASS}", True, (255, 255, 0))
     win.blit(waiting_info, (1000, 200 + (aux + 6) * 20))
-    INDEX_info = TEXT_FONT.render("INDEX: " + str(INDEX), True, (255, 255, 0))
+    INDEX_info = TEXT_FONT.render(f"INDEX: {INDEX}", True, (255, 255, 0))
     win.blit(INDEX_info, (1000, 200 + (aux + 7) * 20))
     # '''
-    pieces_text = TEXT_FONT.render("Select your piece", True, (255, 255, 0))
-    coords_text = COORDS_FONT.render("Coords: " + str(coord_x) + "," + str(coord_y), True, (255, 0, 255))
+    pieces_text = TEXT_FONT.render("Select your penguin", True, (255, 255, 0))
+    coords_text = COORDS_FONT.render(f"Coords:  {coord_x}, {coord_y}", True, (255, 0, 255))
 
 
     '''
@@ -431,7 +436,7 @@ def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, ob
         but.draw(win)
         aux += 1
     #'''
-    win.blit(coords_text, (10, 10))
+    # win.blit(coords_text, (10, 10))
     win.blit(pieces_text, (1000, 20))
     if PLAYER_NOT_SELECTED:
         unselected_text = TEXT_FONT.render("Select a player before moving", True, (255, 255, 0))
@@ -855,7 +860,8 @@ def main(player_list=[Player("Player 1")]):
             # print("here01", steps)
 
 
-        drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list)
+        drawGameWindow(HB, tile_list, pieces_list, button_list,
+                       coord_x, coord_y, objective, remaining_seconds, steps, player_list)
         # If the goal is reached, a new objective is generated
         try:
             if event.type == GOAL_REACHED:
@@ -867,6 +873,10 @@ def main(player_list=[Player("Player 1")]):
                 POSITION_LIST = []
                 INDEX = -1
                 updatePositionList(pieces_list)
+
+                for p in player_list:
+                    p.bid_status = False
+                    p.bid = 0
                 if SCORE < 5: # len(tile_list):
                     aux = Tile(499-20, 508-20)
                     objective_index = random_list[SCORE]

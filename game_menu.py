@@ -5,6 +5,7 @@ import os
 import time
 from random import randrange
 import hitbox
+from hitbox import Button
 
 pygame.font.init()
 pygame.mixer.init()
