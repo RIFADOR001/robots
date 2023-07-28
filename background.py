@@ -25,20 +25,22 @@ def buildBoard(Q1='Iceboardquarter001.png', Q2='Iceboardquarter001.png', Q3='Ice
     # win.blit(bg3, (262, 262))
     # win.blit(bg4, (0, 262))
 
-waiting = True
-while waiting:
-    bg_list = buildBoard()
-    win.blit(bg_list[0], (0, 0))
-    win.blit(bg_list[1], (262, 0))
-    win.blit(bg_list[2], (262, 262))
-    win.blit(bg_list[3], (0, 262))
-    for event in pygame.event.get():
-        # Close the game if Q is pressed
-        if event.type == pygame.KEYDOWN:
-            if event.key == ord('q'):
-                pygame.quit()
-                sys.exit()
 
-    pygame.display.update()
+if __name__=="__main__":
+    waiting = True
+    while waiting:
+        bg_list = buildBoard()
+        win.blit(bg_list[0], (0, 0))
+        win.blit(bg_list[1], (262, 0))
+        win.blit(bg_list[2], (262, 262))
+        win.blit(bg_list[3], (0, 262))
+        for event in pygame.event.get():
+            # Close the game if Q is pressed
+            if event.type == pygame.KEYDOWN:
+                if event.key == ord('q'):
+                    pygame.quit()
+                    sys.exit()
+
+        pygame.display.update()
 
 

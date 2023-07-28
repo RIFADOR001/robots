@@ -90,8 +90,6 @@ def coord(i, j):
     # return (j*(1000/16),i*(1000/16))
 
 
-HW = np.zeros((17, 17))
-
 # List of vertical walls, starting from top/left corner
 VW_list = [(133, 20), (560, 20), (316, 81), (682, 81),
          (72, 203), (926, 203),
