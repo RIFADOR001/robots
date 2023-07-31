@@ -902,6 +902,6 @@ player_list = [player1, player2]
 
 if __name__ == "__main__":
     # game_menu.game_start()
-    main(player_list)
-    # main(game_menu.players2())
+    # main(player_list)
+    main(game_menu.players2())
     # main()

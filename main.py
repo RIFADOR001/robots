@@ -127,7 +127,7 @@ def create_random_list(n):
 
 
 # This is the main function
-def main(player_list=[Player("Player 1")]):
+def main_function(player_list=[Player("Player 1")]):
     global SCORE
     global GOAL_REACHED
     global FIRST_MOVEMENT
