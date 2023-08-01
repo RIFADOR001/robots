@@ -5,7 +5,9 @@ import os
 import time
 from random import randrange
 import game_menu
+from boardGeometry import cell, CALIBRATION_X, CALIBRATION_Y, X_COORD_LIST, Y_COORD_LIST, EPSILON
 
+VEL = 5
 
 # Class of the pieces of the game. They have their current position in screen, current cell in board,
 # image, size, color, hitbox
@@ -112,6 +114,15 @@ class Player(object):
 
 
 
+class listsPenguinPlayersHitbox():
+    def __init__(self, penguin_list, player_list, hitbox_list):
+        self.hitbox_list = hitbox_list
+        self.penguins_list = penguin_list
+        self.players_list = player_list
+
+    def draw(self, win):
+        for pen in self.penguins_list:
+            pen.draw(win)
 
 
 

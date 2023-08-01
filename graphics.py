@@ -1,5 +1,6 @@
-
-
+import pygame
+import os
+from game_info import GameInfo
 
 
 
@@ -22,6 +23,7 @@ BLUE = (0, 155, 155)
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
 win = pygame.display.set_mode((dimx, dimy))
+SHOW_HITBOX = True
 
 
 # FPS=60
@@ -42,19 +44,20 @@ TEXT_FONT1 = pygame.font.SysFont('comicsans', 12)
 bg = pygame.image.load(os.path.join('Assets', 'board.png'))
 
 # This function draws the board, pieces, score and everything displayed in screen
-def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list):
+# def drawGameWindow(HB, tile_list, pieces_list, button_list, coord_x, coord_y, objective, remaining_seconds, steps, player_list):
+def drawGameWindow(game_info, coord_x, coord_y):
     win.fill(BLUE)
     win.blit(bg, (0, 0))
     if SHOW_HITBOX:
-        for w in HB:
-            pygame.draw.rect(win, (255, 0, 0), w)
-    for t in tile_list:
+        for hb in game_info.lists.hitbox_list:
+            pygame.draw.rect(win, (255, 0, 0), hb)
+    for t in game_info.token_list:
         t.draw(win)
     for piece in pieces_list:
         piece.draw(win)
     objective.draw(win)
     # steps = 0
-    steps_info = TEXT_FONT.render(f"Number of steps: {steps}", True, (255, 255, 0))
+    steps_info = TEXT_FONT.render(f"Number of steps: {game_info.steps}", True, (255, 255, 0))
     # win.blit(steps_info, (1000, 220))
     aux = 10
     for button in button_list:

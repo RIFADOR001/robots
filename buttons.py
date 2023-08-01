@@ -33,6 +33,9 @@ class PenguinButton(Button):
         self.image = self.image_nonactive
         self.image_active = pygame.image.load(os.path.join("Assets", f"{self.color}_active.png"))
 
+    def draw(self, win):
+        win.blit(self.image, (self.x, self.y))
+
 
 class PlayerButton(Button):
     def __init__(self, x, y, player):
@@ -50,54 +53,59 @@ class PlayerButton(Button):
         win.blit(name_info, (self.x, self.y))
         win.blit(score_info, (self.x + BUTTON_LENGTH + 5, self.y))
 
-    def activate(self, game):
-        game.active_player = self.player
-        game.timer = True
-        game.player_not_selected = False
+    def activate(self, game_info):
+        game_info.active_player = self.player
+        game_info.timer = True
+        game_info.player_not_selected = False
         self.player.bid = bid(self.player.bid_status, self.player.name, self.player.bid)
         self.player.bid_status = True
 
-    class MovementButton(Button):
-        def __init__(self, x, y, function):
-            if function == "Restart position":
-                Button.__init__(self, x, y, 100, 20)
-                self.image = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'Blank.png')), (100, 20))
-            else:
-                Button.__init__(self, x, y, 50, 20)
-                # self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
-            self.function = function
+class MovementButton(Button):
+    def __init__(self, x, y, function):
+        if function == "Restart position":
+            Button.__init__(self, x, y, 100, 20)
+            self.image = pygame.transform.scale(pygame.image.load(os.path.join('Assets', 'Blank.png')), (100, 20))
+        else:
+            Button.__init__(self, x, y, 50, 20)
+            # self.image = pygame.image.load(os.path.join('Assets', 'Blank.png'))
+        self.function = function
 
-        def activate(self, game_info):
-            if self.function == "Back":
-                if game_info.index > 0:
-                    game_info.steps -= 2
-                    game_info.index -= 1
-                    aux = 0
-                    for p in game_info.pieces_list:
-                        p.x = game_info.position_list[game_info.INDEX][aux][0]
-                        p.y = game_info.position_list[game_info.INDEX][aux][1]
-                        aux += 1
-                print("Back")
-            if self.function == "Forward":
-                print("Forward")
-                n = len(game_info.position_list)
-                if game_info.index < n - 1:
-                    game_info.index += 1
-                    aux = 0
-                    for p in game_info.pieces_list:
-                        p.x = game_info.position_list[game_info.index][aux][0]
-                        p.y = game_info.position_list[game_info.index][aux][1]
-                        aux += 1
+    def draw(self, win):
+        win.blit(self.image, (self.x, self.y))
+        button_info = TEXT_FONT1.render(self.function, True, (0, 0, 0))
+        win.blit(button_info, (self.x, self.y))
 
-            if self.function == "Print list":
-                print(game_info.position_list)
-            if self.function == "Restart position":
-                game_info.INDEX = 0
+    def activate(self, game_info):
+        if self.function == "Back":
+            if game_info.index > 0:
+                game_info.steps -= 2
+                game_info.index -= 1
                 aux = 0
                 for p in game_info.pieces_list:
-                    p.x = game_info.position_list[0][aux][0]
-                    p.y = game_info.position_list[0][aux][1]
+                    p.x = game_info.position_list[game_info.INDEX][aux][0]
+                    p.y = game_info.position_list[game_info.INDEX][aux][1]
                     aux += 1
+            print("Back")
+        if self.function == "Forward":
+            print("Forward")
+            n = len(game_info.position_list)
+            if game_info.index < n - 1:
+                game_info.index += 1
+                aux = 0
+                for p in game_info.pieces_list:
+                    p.x = game_info.position_list[game_info.index][aux][0]
+                    p.y = game_info.position_list[game_info.index][aux][1]
+                    aux += 1
+
+        if self.function == "Print list":
+            print(game_info.position_list)
+        if self.function == "Restart position":
+            game_info.INDEX = 0
+            aux = 0
+            for p in game_info.pieces_list:
+                p.x = game_info.position_list[0][aux][0]
+                p.y = game_info.position_list[0][aux][1]
+                aux += 1
 
 
 class FunctionalityButton(Button):
@@ -131,5 +139,18 @@ class FunctionalityButton(Button):
         if self.function == "Settings":
             game_info.hourglass = adjustTime()
 
+class ButtonLists(object):
+    def __init__(self, penguin_button_list, player_button_list, functionality_button_list):
+        self.penguin_button_list = penguin_button_list
+        self.player_button_list = player_button_list
+        self.functionality_button_list = functionality_button_list
+
+    def draw(self, win):
+        for pen_b in self.penguin_button_list:
+            pen_b.draw(win)
+        for pla_b in self.player_button_list:
+            pla_b.draw(win)
+        for fun_b in self.functionality_button_list:
+            fun_b.draw(win)
 
 
