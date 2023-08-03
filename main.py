@@ -1,14 +1,20 @@
-from pieces_players_tokens import Player, Token
+from pieces_players_tokens import Player, Token, create_token_list
 import pygame
 from random import randrange
 from board_geometry import walls_hitbox, vwall_list, hwall_list
 import sys
 import time
 from game_information import GameInfo
+# from graphics import main_win
 
 pygame.init()
 clock = pygame.time.Clock()
 
+LEFT_SPACE = 300
+# Size of the screen
+dimx = 1000 + LEFT_SPACE
+dimy = 1000
+main_win = pygame.display.set_mode((dimx, dimy))
 # This function creates the token list (the positions, images)
 def create_tile_list():
     tile_list = []
@@ -56,7 +62,6 @@ def create_tile_list():
 # This function initializes the pieces and buttons
 
 
-
 # This function creates a random list to show objectives every time a new one is needed
 def create_random_list(n):
     aux = [i for i in range(n)]
@@ -66,12 +71,11 @@ def create_random_list(n):
     return random_list
 
 
-
 # This is the main function
 def main_function(game_info, win, player_list=None):
     if player_list is None:
         player_list = [Player("Player 1")]
-    HB = walls_hitbox(game_info.VW_list, game_info.HW_list)
+    # HB = walls_hitbox(game_info.VW_list, game_info.HW_list)
     tile_list = create_tile_list()
     random_list = create_random_list(len(tile_list))
     # print(len(random_list))
@@ -79,9 +83,8 @@ def main_function(game_info, win, player_list=None):
     for p in player_list:
         p.score = 0
 
-
     aux = Token(499 - 20, 508 - 20)
-    objective_index = random_list[game_info.score]
+    objective_index = random_list[game_info.tokens]
     aux.copy(tile_list[objective_index])
     objective = aux
 
@@ -89,14 +92,14 @@ def main_function(game_info, win, player_list=None):
     objective.y = 508 - 20
     # pieces_list, button_list = initialize_pieces_buttons(player_list)
 
-    INDEX = -1
-    POSITION_LIST = []
+    # INDEX = -1
+    # POSITION_LIST = []
     # updatePositionList(pieces_list)
     # mainloop
     game_info.new_position_list()
 
     run = True
-
+    start_time = 5000
     # '''
     while run:
         clock.tick(game_info.fps)
@@ -122,7 +125,7 @@ def main_function(game_info, win, player_list=None):
             if pen_button.pushed:
                 keys = pygame.key.get_pressed()
                 game_info.lists.update_hitbox(pen_button.penguin)
-                pen_button.penguin.handleMovement(keys, game_info)
+                pen_button.penguin.handle_movement(keys, game_info)
         if game_info.timer:
             game_info.first_movement_done = True
             if game_info.remaining_time == 0:
@@ -131,14 +134,15 @@ def main_function(game_info, win, player_list=None):
 
         if not game_info.first_movement_done:
             remaining_seconds = 0
+            # game_info.remaining_time = 0
         else:
             # remaining_seconds = 15 - (int(time.time() -int(start_time)))
             # remaining_seconds = 60 - (int(time.time() - int(start_time)))
             remaining_seconds = game_info.hourglass - (int(time.time() - int(start_time)))
             if remaining_seconds <= 0:
                 remaining_seconds = 0
+                game_info.remaining_time = 0
                 game_info.timer = False
-
 
         if game_info.real_movement:
             game_info.realmovement = False
@@ -160,7 +164,7 @@ def main_function(game_info, win, player_list=None):
                 for p in player_list:
                     p.bid_status = False
                     p.bid = 0
-                if game_info.score < 5: # len(tile_list):
+                if game_info.score < 5:  # len(tile_list):
                     aux = Token(499-20, 508-20)
                     objective_index = random_list[game_info.score]
                     # print(objective_index)
@@ -170,24 +174,27 @@ def main_function(game_info, win, player_list=None):
                     objective.x = 499 - 20
                     objective.y = 508 - 20
                 else:
-                    GAME_OVER = True
+                    game_over = True
                     # draw_winer()
                     # main()
         except:
             pass
 
-
     pygame.quit()
     # '''
 
+
 player1 = Player("Player 1")
 player2 = Player("Player 2")
-player_list = [player1, player2]
+play_list = [player1, player2]
 
-g_info = GameInfo(player_list, hb_list, t_list)
-
+hb_list = walls_hitbox(vwall_list, hwall_list)
+t_list = create_token_list()
+g_info = GameInfo(play_list, hb_list, t_list)
+g_info.initialize_buttons()
+g_info.new_random_list()
 if __name__ == "__main__":
     # game_menu.game_start()
-    main_function(g_info, win, player_list)
+    main_function(g_info, main_win, play_list)
     # main(game_menu.players2())
     # main()

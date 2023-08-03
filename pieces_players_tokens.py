@@ -3,7 +3,7 @@ from board_geometry import cell, CALIBRATION_X, CALIBRATION_Y, X_COORD_LIST, Y_C
 from game_config import*
 from graphics import input_box
 
-VEL = 5
+VEL = 10
 
 
 # Class of the pieces of the game. They have their current position in screen, current cell in board,
@@ -280,3 +280,48 @@ def create_penguin_list(positions=None):
     for p in aux_penguin_list:
         p.handle_hitbox()
     return aux_penguin_list
+
+
+# This function creates the token list (the positions, images)
+def create_token_list():
+    token_list = []
+    mr = Token(695, 93, "red", "moon")
+    mb = Token(86, 635, "blue", "moon")
+    my = Token(753, 817, "yellow", "moon")
+    mg = Token(268, 93, "green", "moon")
+    token_list.append(mr)
+    token_list.append(mb)
+    token_list.append(my)
+    token_list.append(mg)
+
+    sr = Token(271, 759, "red", "star")
+    sb = Token(208, 394, "blue", "star")
+    sy = Token(753, 398, "yellow", "star")
+    sg = Token(694, 636, "green", "star")
+    token_list.append(sr)
+    token_list.append(sb)
+    token_list.append(sy)
+    token_list.append(sg)
+
+    pr = Token(819, 698, "red", "planet")
+    pb = Token(566, 268, "blue", "planet")
+    py = Token(329, 333, "yellow", "planet")
+    pg = Token(329, 572, "green", "planet")
+    token_list.append(pr)
+    token_list.append(pb)
+    token_list.append(py)
+    token_list.append(pg)
+
+    tr = Token(86, 212, "red", "triangle")
+    tb = Token(631, 760, "blue", "triangle")
+    ty = Token(393, 882, "yellow", "triangle")
+    tg = Token(870, 215, "green", "triangle")
+    token_list.append(tr)
+    token_list.append(tb)
+    token_list.append(ty)
+    token_list.append(tg)
+
+    rb = Token(145, 517)
+    token_list.append(rb)
+
+    return token_list

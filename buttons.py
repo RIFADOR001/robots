@@ -1,9 +1,7 @@
 import pygame
 import os
-from main import main_function
+# from main import main_function
 from game_menu import adjustTime, bid
-# from game_info import GameInfo
-# from piecesPlayersTokens import Penguin, Player
 
 
 BUTTON_LENGTH = 50
@@ -133,7 +131,7 @@ class FunctionalityButton(Button):
     def activate(self, game_info=None):
         if self.function == "Restart":
             game_info.tokens = 0
-            main_function(game_info)
+            # main_function(game_info)
         if self.function == "Time":
             game_info.timer = True
             self.pushed = True

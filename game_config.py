@@ -10,7 +10,7 @@ dimx = 1000 + LEFT_SPACE
 dimy = 1000
 
 BUTTON_LENGTH = 50
-
+pygame.font.init()
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
 
 SHOW_HITBOX = True

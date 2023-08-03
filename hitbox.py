@@ -38,7 +38,7 @@ WINNER_FONT = pygame.font.SysFont('comicsans', 100)
 GOAL_REACHED = pygame.USEREVENT+1
 MOVED_CELL = pygame.USEREVENT+2
 
-SHOW_HITBOX = True
+SHOW_HITBOX = False
 
 TIMER = False
 FIRST_MOVEMENT = False

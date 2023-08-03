@@ -1,13 +1,13 @@
-from pieces_players_tokens import ListsPenguinPlayersHitbox
+from pieces_players_tokens import ListsPenguinPlayersHitbox, Player
 from graphics import BLUE, bg, SHOW_HITBOX
 from game_config import*
 from buttons import PenguinButton, PlayerButton, FunctionalityButton, MovementButton, ButtonLists
-
+from random import randrange
 
 class GameInfo(object):
     def __init__(self, players_list, hitbox_list, token_list, initial_positions=None):
         self.buttons_lists = None
-        self.position_list = [[(p.x, p.y) for p in players_list]]
+        self.position_list = None  # [[(p.x, p.y) for p in players_list]]
         self.index = 0
         self.tokens = 0
         self.movement = False
@@ -20,20 +20,22 @@ class GameInfo(object):
         self.max_time = 30
         self.steps = 0
         self.player_not_selected = True
-        self.active_player = None
+        self.active_player = self.aux_player = Player("None")
+
+        self.random_list = None
         self.objective = None
-        self.remaining_time = self.max_time
+        self.remaining_time = 0
         self.lists = ListsPenguinPlayersHitbox(players_list, hitbox_list, initial_positions)
         self.token_list = token_list
         self.walls = None
         self.fps = 60
 
     def new_position_list(self):
-        self.position_list = [[(p.x, p.y) for p in self.lists.players_list]]
+        self.position_list = [[(p.x, p.y) for p in self.lists.penguins_list]]
         self.index = 0
 
     def update_position_list(self):
-        self.position_list.append([(p.x, p.y) for p in self.lists.players_list])
+        self.position_list.append([(p.x, p.y) for p in self.lists.penguins_list])
         self.index += 1
 
     def update_active_player(self, player):
@@ -97,9 +99,10 @@ class GameInfo(object):
                 pygame.draw.rect(win, (255, 0, 0), hb)
         for t in self.token_list:
             t.draw(win)
+        self.objective.draw(win)
         self.lists.draw(win)
 
-        self.objective.draw(win)
+
         aux = 10
         self.buttons_lists.draw(win)
 
@@ -129,3 +132,12 @@ class GameInfo(object):
         if self.player_not_selected:
             unselected_text = TEXT_FONT.render("Select a player before moving", True, (255, 255, 0))
             win.blit(unselected_text, (1000, 200))
+        pygame.display.update()
+
+    def new_random_list(self):
+        aux = [i for i in range(17)]
+        random_list = []
+        for i in range(17):
+            random_list.append(aux.pop(randrange(1000) % len(aux)))
+        self.random_list = random_list
+        self.objective = self.token_list[random_list[0]]
