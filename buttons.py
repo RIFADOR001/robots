@@ -27,7 +27,8 @@ class PenguinButton(Button):
         Button.__init__(self, x, y, 50, 50)
         self.pushed = False
         self.color = penguin.color
-        self.piece = penguin
+        self.penguin = penguin
+        self.penguin.button = self
         # Depending on the color of the piece, the image is selected
         self.image_nonactive = pygame.image.load(os.path.join("Assets", f"hero{self.color}.png"))
         self.image = self.image_nonactive
@@ -35,6 +36,13 @@ class PenguinButton(Button):
 
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
+
+    def activate(self, penguin_button_list):
+        for pb in penguin_button_list:
+            pb.pushed = False
+            pb.image = pb.image_nonactive
+        self.image = self.image_active
+        self.pushed = True
 
 
 class PlayerButton(Button):
@@ -59,6 +67,7 @@ class PlayerButton(Button):
         game_info.player_not_selected = False
         self.player.bid = bid(self.player.bid_status, self.player.name, self.player.bid)
         self.player.bid_status = True
+
 
 class MovementButton(Button):
     def __init__(self, x, y, function):
@@ -139,6 +148,7 @@ class FunctionalityButton(Button):
         if self.function == "Settings":
             game_info.hourglass = adjustTime()
 
+
 class ButtonLists(object):
     def __init__(self, penguin_button_list, player_button_list, functionality_button_list):
         self.penguin_button_list = penguin_button_list
@@ -153,4 +163,18 @@ class ButtonLists(object):
         for fun_b in self.functionality_button_list:
             fun_b.draw(win)
 
-
+    # We verify if a button was pushed. If it is a piece, the other pieces should deactivate and the pushed
+    # piece should become active. This is the piece that we will move.
+    def handle_clicks(self, x, y, movement):
+        for pen_button in self.penguin_button_list:
+            if not movement:
+                if pen_button.x < x < pen_button.x + pen_button.width and pen_button.y < y < pen_button.y + pen_button.height:
+                    pen_button.activate(self.penguin_button_list)
+                elif pen_button.penguin.x < x < pen_button.penguin.x + pen_button.penguin.width and pen_button.penguin.y < y < pen_button.penguin.y + pen_button.penguin.height:
+                    pen_button.activate(self.penguin_button_list)
+        for fun_button in self.functionality_button_list:
+            if fun_button.x < x < fun_button.x + fun_button.width and fun_button.y < y < fun_button.y + fun_button.height:
+                fun_button.activate()
+        for pla_button in self.player_button_list:
+            if pla_button.x < x < pla_button.x + pla_button.width and pla_button.y < y < pla_button.y + pla_button.height:
+                pla_button.activate()

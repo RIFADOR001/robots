@@ -588,7 +588,7 @@ def update_HB(HB, piece_list, piece):
     for hb in piece.hitbox_list:
         HB.remove(hb)
     piece.hitbox_inactive = True
-    return HB
+    # return HB
 
 # This function creates the token list (the positions, images)
 def create_tile_list():
@@ -832,7 +832,8 @@ def main(player_list=[Player("Player 1")]):
         for button in button_list:
             if button.pushed == True:
                 keys = pygame.key.get_pressed()
-                HB = update_HB(HB, pieces_list, button.piece)
+                # HB = update_HB(HB, pieces_list, button.piece)
+                update_HB(HB, pieces_list, button.piece)
                 handleMovement(keys, HB, button.piece, tile_list, objective, pieces_list)
         if TIMER:
             FIRST_MOVEMENT = True
@@ -902,6 +903,6 @@ player_list = [player1, player2]
 
 if __name__ == "__main__":
     # game_menu.game_start()
-    # main(player_list)
-    main(game_menu.players2())
+    main(player_list)
+    # main(game_menu.players2())
     # main()
