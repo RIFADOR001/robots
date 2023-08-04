@@ -94,7 +94,7 @@ class GameInfo(object):
     def draw(self, win, mouse_x, mouse_y):
         win.fill(BLUE)
         win.blit(bg, (0, 0))
-        if SHOW_HITBOX:
+        if not SHOW_HITBOX:
             for hb in self.lists.hitbox_list:
                 pygame.draw.rect(win, (255, 0, 0), hb)
         for t in self.token_list:

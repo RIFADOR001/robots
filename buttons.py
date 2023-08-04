@@ -109,7 +109,8 @@ class MovementButton(Button):
         if self.function == "Restart position":
             game_info.INDEX = 0
             aux = 0
-            for p in game_info.pieces_list:
+            print(self.function)
+            for p in game_info.lists.penguins_list:
                 p.x = game_info.position_list[0][aux][0]
                 p.y = game_info.position_list[0][aux][1]
                 aux += 1
@@ -163,16 +164,16 @@ class ButtonLists(object):
 
     # We verify if a button was pushed. If it is a piece, the other pieces should deactivate and the pushed
     # piece should become active. This is the piece that we will move.
-    def handle_clicks(self, x, y, movement):
+    def handle_clicks(self, x, y, game_info):
         for pen_button in self.penguin_button_list:
-            if not movement:
+            if not game_info.movement:
                 if pen_button.x < x < pen_button.x + pen_button.width and pen_button.y < y < pen_button.y + pen_button.height:
                     pen_button.activate(self.penguin_button_list)
                 elif pen_button.penguin.x < x < pen_button.penguin.x + pen_button.penguin.width and pen_button.penguin.y < y < pen_button.penguin.y + pen_button.penguin.height:
                     pen_button.activate(self.penguin_button_list)
         for fun_button in self.functionality_button_list:
             if fun_button.x < x < fun_button.x + fun_button.width and fun_button.y < y < fun_button.y + fun_button.height:
-                fun_button.activate()
+                fun_button.activate(game_info)
         for pla_button in self.player_button_list:
             if pla_button.x < x < pla_button.x + pla_button.width and pla_button.y < y < pla_button.y + pla_button.height:
-                pla_button.activate()
+                pla_button.activate(game_info)

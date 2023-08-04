@@ -119,7 +119,7 @@ def main_function(game_info, win, player_list=None):
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                game_info.buttons_lists.handle_clicks(coord_x, coord_y, game_info.movement)
+                game_info.buttons_lists.handle_clicks(coord_x, coord_y, game_info)
                 # run = False
         for pen_button in game_info.buttons_lists.penguin_button_list:
             if pen_button.pushed:

@@ -7,11 +7,7 @@
     <list default="true" id="9e9de826-a5e9-415c-826a-f5b9ec5e2e7f" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/buttons.py" beforeDir="false" afterPath="$PROJECT_DIR$/buttons.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game_config.py" beforeDir="false" afterPath="$PROJECT_DIR$/game_config.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/game_information.py" beforeDir="false" afterPath="$PROJECT_DIR$/game_information.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/hitbox.py" beforeDir="false" afterPath="$PROJECT_DIR$/hitbox.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/main.py" beforeDir="false" afterPath="$PROJECT_DIR$/main.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/pieces_players_tokens.py" beforeDir="false" afterPath="$PROJECT_DIR$/pieces_players_tokens.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
