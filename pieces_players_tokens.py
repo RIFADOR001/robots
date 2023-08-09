@@ -142,11 +142,13 @@ class Penguin(object):
                 if game_info.objective.cell_x == self.cell_x and game_info.objective.cell_y == self.cell_y:
                     if game_info.steps != 0 and game_info.objective.color == self.color or game_info.objective.color == "rainbow":
                         pygame.event.post(pygame.event.Event(game_info.goal_reached))
-                        game_info.active_player.score += 1
+                        if game_info.active_player is not None:  # here (Erase if, this is only for quick testing)
+                            game_info.active_player.score += 1
                         game_info.active_player = None
                         game_info.tokens += 1
                         game_info.objective.cell_x = 20
                         game_info.steps = 0
+                        game_info.update_objective()
                 self.state = "standing"
                 self.update_cell()
                 self.handle_hitbox()

@@ -1,4 +1,4 @@
-from pieces_players_tokens import ListsPenguinPlayersHitbox, Player
+from pieces_players_tokens import ListsPenguinPlayersHitbox, Player, Token
 from graphics import BLUE, bg, SHOW_HITBOX
 from game_config import*
 from buttons import PenguinButton, PlayerButton, FunctionalityButton, MovementButton, ButtonLists
@@ -40,6 +40,15 @@ class GameInfo(object):
 
     def update_active_player(self, player):
         self.active_player = player
+
+    def update_objective(self):
+        aux_token = Token(499 - 20, 508 - 20)
+        aux_token.copy(self.token_list[self.random_list[self.tokens]])
+        objective = aux_token
+
+        objective.x = 499 - 20
+        objective.y = 508 - 20
+        self.objective = objective
 
     def initialize_buttons(self):
         # black = Penguin(200, 23, "black")
@@ -117,7 +126,10 @@ class GameInfo(object):
         win.blit(timer_info, (1000, 200 + (aux + 3) * 20))
         # steps01_info = TEXT_FONT.render(f"Steps: {steps}", True, (255, 255, 0))
         # win.blit(steps01_info, (1000, 200 + (aux + 4) * 20))
-        steps01_info = TEXT_FONT.render(f"Active player: {self.active_player.name}", True, (255, 255, 0))
+        if self.active_player is not None:
+            steps01_info = TEXT_FONT.render(f"Active player: {self.active_player.name}", True, (255, 255, 0))
+        else:
+            steps01_info = TEXT_FONT.render(f"Active player: None", True, (255, 255, 0))
         win.blit(steps01_info, (1000, 200 + (aux + 5) * 20))
         waiting_info = TEXT_FONT.render(f"Waiting time: {self.hourglass}", True, (255, 255, 0))
         win.blit(waiting_info, (1000, 200 + (aux + 6) * 20))
@@ -140,4 +152,5 @@ class GameInfo(object):
         for i in range(17):
             random_list.append(aux.pop(randrange(1000) % len(aux)))
         self.random_list = random_list
-        self.objective = self.token_list[random_list[0]]
+
+        self.update_objective()

@@ -14,10 +14,10 @@ def buildBoard(Q1='Iceboardquarter001.png', Q2='Iceboardquarter001.png', Q3='Ice
     # bg2 = pygame.transform.rotate(bg1,270)
     # bg3 = pygame.transform.rotate(bg2,270)
     # bg4 = pygame.transform.rotate(bg3,270)
-    bg1 = pygame.image.load(os.path.join('Assets', Q1))
-    bg2 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', Q2)), 270)
-    bg3 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', Q3)), 180)
-    bg4 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', Q4)), 90)
+    bg1 = pygame.image.load(os.path.join('Assets/Board', Q2))
+    bg2 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', Q1)), 270)
+    bg3 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', Q4)), 180)
+    bg4 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', Q3)), 90)
     bg_list = [bg1, bg2, bg3, bg4]
     return bg_list
     # win.blit(bg1, (0, 0))
@@ -29,7 +29,7 @@ def buildBoard(Q1='Iceboardquarter001.png', Q2='Iceboardquarter001.png', Q3='Ice
 if __name__=="__main__":
     waiting = True
     while waiting:
-        bg_list = buildBoard()
+        bg_list = buildBoard("Q1.png", "Q2.png", "Q3.png", "Q4.png")
         win.blit(bg_list[0], (0, 0))
         win.blit(bg_list[1], (262, 0))
         win.blit(bg_list[2], (262, 262))

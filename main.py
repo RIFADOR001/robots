@@ -5,6 +5,7 @@ from board_geometry import walls_hitbox, vwall_list, hwall_list
 import sys
 import time
 from game_information import GameInfo
+from pygame.locals import *
 # from graphics import main_win
 
 pygame.init()
@@ -14,7 +15,8 @@ LEFT_SPACE = 300
 # Size of the screen
 dimx = 1000 + LEFT_SPACE
 dimy = 1000
-main_win = pygame.display.set_mode((dimx, dimy))
+FACTOR = dimy/dimx
+main_win = pygame.display.set_mode((dimx, dimy), HWSURFACE | DOUBLEBUF | RESIZABLE)
 # This function creates the token list (the positions, images)
 def create_tile_list():
     tile_list = []
@@ -76,6 +78,7 @@ def main_function(game_info, win, player_list=None):
     if player_list is None:
         player_list = [Player("Player 1")]
     # HB = walls_hitbox(game_info.VW_list, game_info.HW_list)
+    fake_screen = win.copy()
     tile_list = create_tile_list()
     random_list = create_random_list(len(tile_list))
     # print(len(random_list))
@@ -113,6 +116,9 @@ def main_function(game_info, win, player_list=None):
                     pygame.quit()
                     sys.exit()
                     # run = False
+            elif event.type == VIDEORESIZE:
+                win = pygame.display.set_mode((event.size[0],event.size[0]*FACTOR), HWSURFACE | DOUBLEBUF | RESIZABLE)
+
                 # if event.key == ord('c'):
                 #     game_menu.players2()
             if event.type == pygame.QUIT:
@@ -150,7 +156,10 @@ def main_function(game_info, win, player_list=None):
             # steps += 1
             # print("here01", steps)
 
-        game_info.draw(win, coord_x, coord_y)
+        # game_info.draw(win, coord_x, coord_y)
+        game_info.draw(fake_screen, coord_x, coord_y)
+        win.blit(pygame.transform.scale(fake_screen, win.get_rect().size), (0, 0))
+        pygame.display.flip()
         # If the goal is reached, a new objective is generated
         try:
             if event.type == game_info.goal_reached:
@@ -164,7 +173,7 @@ def main_function(game_info, win, player_list=None):
                 for p in player_list:
                     p.bid_status = False
                     p.bid = 0
-                if game_info.score < 5:  # len(tile_list):
+                if game_info.tokens < 5:  # len(tile_list):
                     aux = Token(499-20, 508-20)
                     objective_index = random_list[game_info.score]
                     # print(objective_index)
@@ -173,8 +182,10 @@ def main_function(game_info, win, player_list=None):
                     objective = aux
                     objective.x = 499 - 20
                     objective.y = 508 - 20
+                    game_info.update_objective()
                 else:
                     game_over = True
+                    run = False
                     # draw_winer()
                     # main()
         except:

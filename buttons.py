@@ -142,7 +142,7 @@ class FunctionalityButton(Button):
             self.pushed = True
         if self.function == "Rules":
             path = os.path.join('Assets', 'rules.pdf')
-            os.system("open " + path)
+            os.system(f"open {path}")
             # os.system("open Assets/rules.pdf")
         if self.function == "Settings":
             game_info.hourglass = adjustTime()
