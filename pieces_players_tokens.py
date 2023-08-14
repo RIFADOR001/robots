@@ -1,9 +1,9 @@
 import os
-from board_geometry import cell, CALIBRATION_X, CALIBRATION_Y, X_COORD_LIST, Y_COORD_LIST, EPSILON
+from board_geometry import cell, CALIBRATION_X, CALIBRATION_Y, X_COORD_LIST, Y_COORD_LIST, EPSILON, NEW_X_COORD_LIST
 from game_config import*
 from graphics import input_box
 
-VEL = 10
+VEL = 5
 
 
 # Class of the pieces of the game. They have their current position in screen, current cell in board,
@@ -15,8 +15,8 @@ class Penguin(object):
         self.x = x
         self.y = y
         self.color = color
-        self.width = 49
-        self.height = 48
+        self.width = 24 #49
+        self.height = 24 #48
         self.vel = VEL
         self.state = "standing"
         self.cell_x, self.cell_y = cell(self.x, self.y)
@@ -24,10 +24,10 @@ class Penguin(object):
         self.old_cell_y = self.cell_y
         self.hitbox_list = []
         self.hitbox_inactive = True
-        self.image = pygame.image.load(os.path.join('Assets', "hero"+color+".png"))
-        # self.hitbox = (self.x + 17, self.y + 11, 29, 52)
-        self.hitbox = (self.x + 49, self.y + 48, 49, 48)
-        self.rect = pygame.Rect(self.x, self.y, 49, 89)
+        image = pygame.image.load(os.path.join('Assets', "hero"+color+".png"))
+        self.image = pygame.transform.scale(image, (self.width, self.height))
+        self.hitbox = (self.x + self.width, self.y + self.height, self.width, self.height)
+        self.rect = pygame.Rect(self.x, self.y, self.width, self.height)
         self.button = None
 
     def update_cell(self):
@@ -37,19 +37,19 @@ class Penguin(object):
 
     # This function updates the current hitbox and cell of the piece
     def handle_hitbox(self):
-
-        hitbox_left_x = X_COORD_LIST[self.cell_x] - CALIBRATION_X
-        hitbox_left_y = Y_COORD_LIST[self.cell_y] + CALIBRATION_Y
-        hitbox_left = pygame.Rect(hitbox_left_x, hitbox_left_y, 14 - 2 * EPSILON, 40)
-        hitbox_up_x = X_COORD_LIST[self.cell_x] + CALIBRATION_X
-        hitbox_up_y = Y_COORD_LIST[self.cell_y] - CALIBRATION_Y
-        hitbox_up = pygame.Rect(hitbox_up_x, hitbox_up_y, 40, 14 - 2 * EPSILON)
-        hitbox_right_x = X_COORD_LIST[self.cell_x+1] - CALIBRATION_X
-        hitbox_right_y = Y_COORD_LIST[self.cell_y] + CALIBRATION_Y
-        hitbox_right = pygame.Rect(hitbox_right_x, hitbox_right_y, 14 - 2 * EPSILON, 40)
-        hitbox_down_x = X_COORD_LIST[self.cell_x] + CALIBRATION_X
-        hitbox_down_y = Y_COORD_LIST[self.cell_y+1] - CALIBRATION_Y
-        hitbox_down = pygame.Rect(hitbox_down_x, hitbox_down_y, 40, 14 - 2 * EPSILON)
+        # NEW_X_COORD_LIST
+        hitbox_left_x = NEW_X_COORD_LIST[self.cell_x]  # - 5
+        hitbox_left_y = NEW_X_COORD_LIST[self.cell_y] + 5
+        hitbox_left = pygame.Rect(hitbox_left_x, hitbox_left_y, 4, 10)
+        hitbox_up_x = NEW_X_COORD_LIST[self.cell_x] + 5
+        hitbox_up_y = NEW_X_COORD_LIST[self.cell_y]  # - 5
+        hitbox_up = pygame.Rect(hitbox_up_x, hitbox_up_y, 10, 4)
+        hitbox_right_x = NEW_X_COORD_LIST[self.cell_x+1]  # - 5
+        hitbox_right_y = NEW_X_COORD_LIST[self.cell_y] + 5
+        hitbox_right = pygame.Rect(hitbox_right_x, hitbox_right_y, 4, 10)
+        hitbox_down_x = NEW_X_COORD_LIST[self.cell_x] + 5
+        hitbox_down_y = NEW_X_COORD_LIST[self.cell_y+1]  # - 5
+        hitbox_down = pygame.Rect(hitbox_down_x, hitbox_down_y, 10, 4)
         # self.hitbox_up = pygame.Rect()
         self.hitbox_list = []
         self.hitbox_list.append(hitbox_left)
@@ -60,35 +60,35 @@ class Penguin(object):
     # Draws the piece
     def draw(self, win):
         win.blit(self.image, (self.x, self.y))
-        self.hitbox = (self.x, self.y, 49, 48)
+        self.hitbox = (self.x, self.y, self.width, self.height)
 
     # This function changes the state if the piece would hit a wall in the indicated direction
     # The state is either moving or standing
     def hit_wall(self, hitbox_list):
         epsilon = 10
         if self.state == "left":
-            aux = pygame.Rect(self.x - self.vel, self.y, 49 - epsilon, 49 - epsilon)
+            aux = pygame.Rect(self.x - self.vel, self.y, self.width, self.height)
             for hb in hitbox_list:
                 if aux.colliderect(hb):
                     self.state = "standing"
                     self.handle_hitbox()
                     break
         if self.state == "right":
-            aux = pygame.Rect(self.x + self.vel, self.y, 49 - epsilon, 49 - epsilon)
+            aux = pygame.Rect(self.x + self.vel, self.y, self.width, self.height)
             for hb in hitbox_list:
                 if aux.colliderect(hb):
                     self.state = "standing"
                     self.handle_hitbox()
                     break
         if self.state == "up":
-            aux = pygame.Rect(self.x, self.y - self.vel, 49 - epsilon, 49 - epsilon)
+            aux = pygame.Rect(self.x, self.y - self.vel, self.width, self.height)
             for hb in hitbox_list:
                 if aux.colliderect(hb):
                     self.state = "standing"
                     self.handle_hitbox()
                     break
         if self.state == "down":
-            aux = pygame.Rect(self.x, self.y + self.vel, 49 - epsilon, 49 - epsilon)
+            aux = pygame.Rect(self.x, self.y + self.vel, self.width, self.height)
             for hb in hitbox_list:
                 if aux.colliderect(hb):
                     self.state = "standing"
@@ -269,10 +269,11 @@ def create_penguin_list(positions=None):
         penguin4 = Penguin(377 + CALIBRATION_X, 874 + CALIBRATION_Y, "yellow")
         aux_penguin_list.append(penguin4)
         '''
-        aux_penguin_list.append(Penguin(560 + CALIBRATION_X, 264 + CALIBRATION_Y, "blue"))
-        aux_penguin_list.append(Penguin(865 + CALIBRATION_X, 203 + CALIBRATION_Y, "green"))
-        aux_penguin_list.append(Penguin(926 + CALIBRATION_X, 325 + CALIBRATION_Y, "red"))
-        aux_penguin_list.append(Penguin(377 + CALIBRATION_X, 874 + CALIBRATION_Y, "yellow"))
+        # aux_penguin_list.append(Penguin(560 + CALIBRATION_X, 264 + CALIBRATION_Y, "blue"))
+        aux_penguin_list.append(Penguin(6, 6, "blue"))
+        aux_penguin_list.append(Penguin(6, 490, "green"))
+        aux_penguin_list.append(Penguin(490, 6, "red"))
+        aux_penguin_list.append(Penguin(490, 490, "yellow"))
 
     else:
         aux_penguin_list.append(Penguin(positions[0][0] + CALIBRATION_X, positions[0][1] + CALIBRATION_Y, "blue"))
@@ -287,43 +288,60 @@ def create_penguin_list(positions=None):
 # This function creates the token list (the positions, images)
 def create_token_list():
     token_list = []
-    mr = Token(695, 93, "red", "moon")
-    mb = Token(86, 635, "blue", "moon")
-    my = Token(753, 817, "yellow", "moon")
-    mg = Token(268, 93, "green", "moon")
+    # mr = Token(695, 93, "red", "moon")
+    # mb = Token(86, 635, "blue", "moon")
+    # my = Token(753, 817, "yellow", "moon")
+    # mg = Token(268, 93, "green", "moon")
+    mr = Token(4 + NEW_X_COORD_LIST[11], 4 + NEW_X_COORD_LIST[1], "red", "moon")
+    mb = Token(4 + NEW_X_COORD_LIST[1], 4 + NEW_X_COORD_LIST[10], "blue", "moon")
+    my = Token(4 + NEW_X_COORD_LIST[12], 4 + NEW_X_COORD_LIST[13], "yellow", "moon")
+    mg = Token(4 + NEW_X_COORD_LIST[4], 4 + NEW_X_COORD_LIST[1], "green", "moon")
     token_list.append(mr)
     token_list.append(mb)
     token_list.append(my)
     token_list.append(mg)
 
-    sr = Token(271, 759, "red", "star")
-    sb = Token(208, 394, "blue", "star")
-    sy = Token(753, 398, "yellow", "star")
-    sg = Token(694, 636, "green", "star")
+    # sr = Token(271, 759, "red", "star")
+    # sb = Token(208, 394, "blue", "star")
+    # sy = Token(753, 398, "yellow", "star")
+    # sg = Token(694, 636, "green", "star")
+    sr = Token(4 + NEW_X_COORD_LIST[4], 4 + NEW_X_COORD_LIST[12], "red", "star")
+    sb = Token(4 + NEW_X_COORD_LIST[3], 4 + NEW_X_COORD_LIST[6], "blue", "star")
+    sy = Token(4 + NEW_X_COORD_LIST[12], 4 + NEW_X_COORD_LIST[6], "yellow", "star")
+    sg = Token(4 + NEW_X_COORD_LIST[11], 4 + NEW_X_COORD_LIST[10], "green", "star")
     token_list.append(sr)
     token_list.append(sb)
     token_list.append(sy)
     token_list.append(sg)
 
-    pr = Token(819, 698, "red", "planet")
-    pb = Token(566, 268, "blue", "planet")
-    py = Token(329, 333, "yellow", "planet")
-    pg = Token(329, 572, "green", "planet")
+    # pr = Token(819, 698, "red", "planet")
+    # pb = Token(566, 268, "blue", "planet")
+    # py = Token(329, 333, "yellow", "planet")
+    # pg = Token(329, 572, "green", "planet")
+    pr = Token(4 + NEW_X_COORD_LIST[13], 4 + NEW_X_COORD_LIST[11], "red", "planet")
+    pb = Token(4 + NEW_X_COORD_LIST[9], 4 + NEW_X_COORD_LIST[4], "blue", "planet")
+    py = Token(4 + NEW_X_COORD_LIST[5], 4 + NEW_X_COORD_LIST[5], "yellow", "planet")
+    pg = Token(4 + NEW_X_COORD_LIST[5], 4 + NEW_X_COORD_LIST[9], "green", "planet")
     token_list.append(pr)
     token_list.append(pb)
     token_list.append(py)
     token_list.append(pg)
 
-    tr = Token(86, 212, "red", "triangle")
-    tb = Token(631, 760, "blue", "triangle")
-    ty = Token(393, 882, "yellow", "triangle")
-    tg = Token(870, 215, "green", "triangle")
+    # tr = Token(86, 212, "red", "triangle")
+    # tb = Token(631, 760, "blue", "triangle")
+    # ty = Token(393, 882, "yellow", "triangle")
+    # tg = Token(870, 215, "green", "triangle")
+    tr = Token(4 + NEW_X_COORD_LIST[1], 4 + NEW_X_COORD_LIST[3], "red", "triangle")
+    tb = Token(4 + NEW_X_COORD_LIST[10], 4 + NEW_X_COORD_LIST[12], "blue", "triangle")
+    ty = Token(4 + NEW_X_COORD_LIST[6], 4 + NEW_X_COORD_LIST[14], "yellow", "triangle")
+    tg = Token(4 + NEW_X_COORD_LIST[14], 4 + NEW_X_COORD_LIST[3], "green", "triangle")
     token_list.append(tr)
     token_list.append(tb)
     token_list.append(ty)
     token_list.append(tg)
 
-    rb = Token(145, 517)
+    # rb = Token(145, 517)
+    rb = Token(4 + NEW_X_COORD_LIST[2], 4 + NEW_X_COORD_LIST[8])
     token_list.append(rb)
 
     return token_list

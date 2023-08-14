@@ -1,7 +1,7 @@
 from pieces_players_tokens import Player, Token, create_token_list
 import pygame
 from random import randrange
-from board_geometry import walls_hitbox, vwall_list, hwall_list
+from board_geometry import walls_hitbox, vwall_list, hwall_list, wall_cell_hitbox, vw_cell_list, hw_cell_list
 import sys
 import time
 from game_information import GameInfo
@@ -13,8 +13,10 @@ clock = pygame.time.Clock()
 
 LEFT_SPACE = 300
 # Size of the screen
-dimx = 1000 + LEFT_SPACE
-dimy = 1000
+# dimx = 1000 + LEFT_SPACE
+# dimy = 1000
+dimx = 262*2 + LEFT_SPACE
+dimy = 262*2
 FACTOR = dimy/dimx
 main_win = pygame.display.set_mode((dimx, dimy), HWSURFACE | DOUBLEBUF | RESIZABLE)
 # This function creates the token list (the positions, images)
@@ -103,6 +105,7 @@ def main_function(game_info, win, player_list=None):
 
     run = True
     start_time = 5000
+    mouse_resize_factor = 1
     # '''
     while run:
         clock.tick(game_info.fps)
@@ -117,15 +120,16 @@ def main_function(game_info, win, player_list=None):
                     sys.exit()
                     # run = False
             elif event.type == VIDEORESIZE:
-                win = pygame.display.set_mode((event.size[0],event.size[0]*FACTOR), HWSURFACE | DOUBLEBUF | RESIZABLE)
-
+                win = pygame.display.set_mode((event.size[0], event.size[0]*FACTOR), HWSURFACE | DOUBLEBUF | RESIZABLE)
+                mouse_resize_factor = dimx / event.size[0]
                 # if event.key == ord('c'):
                 #     game_menu.players2()
             if event.type == pygame.QUIT:
                 pygame.quit()
                 sys.exit()
             if event.type == pygame.MOUSEBUTTONDOWN:
-                game_info.buttons_lists.handle_clicks(coord_x, coord_y, game_info)
+                game_info.buttons_lists.handle_clicks(coord_x*mouse_resize_factor, coord_y*mouse_resize_factor,
+                                                      game_info)
                 # run = False
         for pen_button in game_info.buttons_lists.penguin_button_list:
             if pen_button.pushed:
@@ -157,7 +161,7 @@ def main_function(game_info, win, player_list=None):
             # print("here01", steps)
 
         # game_info.draw(win, coord_x, coord_y)
-        game_info.draw(fake_screen, coord_x, coord_y)
+        game_info.draw(fake_screen, coord_x*mouse_resize_factor, coord_y*mouse_resize_factor)
         win.blit(pygame.transform.scale(fake_screen, win.get_rect().size), (0, 0))
         pygame.display.flip()
         # If the goal is reached, a new objective is generated
@@ -199,7 +203,8 @@ player1 = Player("Player 1")
 player2 = Player("Player 2")
 play_list = [player1, player2]
 
-hb_list = walls_hitbox(vwall_list, hwall_list)
+# hb_list = walls_hitbox(vwall_list, hwall_list)
+hb_list = wall_cell_hitbox(vw_cell_list, hw_cell_list)
 t_list = create_token_list()
 g_info = GameInfo(play_list, hb_list, t_list)
 g_info.initialize_buttons()

@@ -5,7 +5,7 @@ import sys
 dimx = 262*2
 dimy = 262*2
 
-
+pygame.font.init()
 screen = pygame.display.set_mode((dimx, dimy))
 screen1_x, screen1_y = 650, 400
 screen1 = pygame.display.set_mode((screen1_x, screen1_y))
@@ -24,8 +24,10 @@ LEFT_SPACE = 300
 BLUE = (0, 155, 155)
 
 # Size of the screen
-dimx = 1000 + LEFT_SPACE
-dimy = 1000
+# dimx = 1000 + LEFT_SPACE
+# dimy = 1000
+dimx = 262*2 + LEFT_SPACE
+dimy = 262*2
 main_win = pygame.display.set_mode((dimx, dimy))
 SHOW_HITBOX = True
 
@@ -67,10 +69,14 @@ def build_board(q1='Iceboardquarter001.png', q2='Iceboardquarter001.png',
     # bg2 = pygame.transform.rotate(bg1,270)
     # bg3 = pygame.transform.rotate(bg2,270)
     # bg4 = pygame.transform.rotate(bg3,270)
-    bg1 = pygame.image.load(os.path.join('Assets', q1))
-    bg2 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q2)), 270)
-    bg3 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q3)), 180)
-    bg4 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q4)), 90)
+    # bg1 = pygame.image.load(os.path.join('Assets', q1))
+    # bg2 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q2)), 270)
+    # bg3 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q3)), 180)
+    # bg4 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets', q4)), 90)
+    bg1 = pygame.image.load(os.path.join('Assets/Board', q2))
+    bg2 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', q1)), 270)
+    bg3 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', q4)), 180)
+    bg4 = pygame.transform.rotate(pygame.image.load(os.path.join('Assets/Board', q3)), 90)
     bg_list = [bg1, bg2, bg3, bg4]
     return bg_list
     # win.blit(bg1, (0, 0))
@@ -152,7 +158,7 @@ def input_box(win, win_x=650, win_y=400, request="", explanation=""):
 def graphics_main(win):
     waiting = True
     while waiting:
-        bg_list = build_board()
+        bg_list = build_board("Q1.png", "Q2.png", "Q3.png", "Q4.png")
         win.blit(bg_list[0], (0, 0))
         win.blit(bg_list[1], (262, 0))
         win.blit(bg_list[2], (262, 262))

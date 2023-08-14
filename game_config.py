@@ -13,7 +13,7 @@ BUTTON_LENGTH = 50
 pygame.font.init()
 WINNER_FONT = pygame.font.SysFont('comicsans', 100)
 
-SHOW_HITBOX = True
+SHOW_HITBOX = False
 
 FPS=60
 # FPS = 120
